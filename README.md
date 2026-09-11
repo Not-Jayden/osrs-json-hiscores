@@ -61,6 +61,10 @@ If you type-check your dependencies (`"skipLibCheck": false`), your `tsconfig.js
   player and `HiScoresError` for a failing or unreachable hiscores are unchanged.
 - A response body that isn't valid JSON throws `HiScoresError`. Previously the unparsed body reached the
   stats parser and leaked a raw `TypeError`.
+- `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
+  so `response.data` becomes `await response.json()`.
+- `numberFromElement` and `rsnFromElement` now take ultrahtml's `Node` rather than a DOM element. Both are
+  still exported, for use on markup you have parsed with `parse` from `ultrahtml`.
 
 ## How to use
 
