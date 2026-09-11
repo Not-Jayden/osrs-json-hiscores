@@ -40,6 +40,26 @@ With Yarn:
 $ yarn add osrs-json-hiscores
 ```
 
+## Requirements
+
+Node.js **20.19.0 or newer**.
+
+This package is **ESM only**. `import` works on any supported version, and CommonJS `require()` works too —
+Node 20.19.0 turned `require(esm)` on by default, so no flags are needed either way.
+
+If you type-check your dependencies (`"skipLibCheck": false`), your `tsconfig.json` needs either
+`"lib": ["ES2022", "DOM"]` or `@types/node`, because request options are typed as the standard
+`RequestInit`. With TypeScript's default `skipLibCheck: true` this doesn't come up.
+
+## Upgrading from v2
+
+- `GetStatsOptions.axiosConfigs` is renamed to `GetStatsOptions.requestConfigs`, and is now a standard
+  `RequestInit` rather than an `AxiosRequestConfig`.
+- `axios`, `jsdom` and `useragent-generator` have been replaced by a small HTML parser and the global
+  `fetch`. Nothing extra to install — Node 18+ already provides `fetch`.
+- A non-2xx response now throws `HttpError`, which carries `.status`. `PlayerNotFoundError` for a missing
+  player and `HiScoresError` for a failing or unreachable hiscores are unchanged.
+
 ## How to use
 
 Install the package and then import it into your project:
