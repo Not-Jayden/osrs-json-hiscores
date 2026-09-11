@@ -1,0 +1,8 @@
+# Not a monorepo. pnpm >=10 reads its settings from this file, and since v12
+# it no longer reads the "pnpm" field in package.json at all.
+#
+# esbuild's postinstall links the platform-specific binary. pnpm blocks build
+# scripts by default and *fails the install* (ERR_PNPM_IGNORED_BUILDS) until
+# each one is approved, so this entry is required, not optional.
+allowBuilds:
+  esbuild: true

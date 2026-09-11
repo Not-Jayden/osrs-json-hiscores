@@ -41,8 +41,10 @@ export interface Stats {
 }
 export type Modes = { [M in Gamemode]?: Stats };
 
-export interface Player
-  extends Pick<Modes, 'main' | 'ironman' | 'hardcore' | 'ultimate'> {
+export interface Player extends Pick<
+  Modes,
+  'main' | 'ironman' | 'hardcore' | 'ultimate'
+> {
   name: string;
   mode: Gamemode;
   dead: boolean;

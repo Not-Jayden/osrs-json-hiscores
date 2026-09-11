@@ -8,12 +8,12 @@
     "lib/**/*"
   ],
   "scripts": {
-    "dev": "yarn build --watch",
+    "dev": "pnpm build --watch",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint --fix \"src/**/*.ts\"",
     "test": "vitest run",
-    "prepublish": "yarn run build",
+    "prepublish": "pnpm run build",
     "release": "np"
   },
   "repository": {
@@ -106,5 +106,6 @@
   },
   "engines": {
     "node": ">=20.19.0"
-  }
+  },
+  "packageManager": "pnpm@12.3.4"
 }
