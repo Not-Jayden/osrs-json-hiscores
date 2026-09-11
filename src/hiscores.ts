@@ -1,4 +1,4 @@
-import { parse, renderSync } from 'ultrahtml';
+import { ELEMENT_NODE, ElementNode, Node, parse, renderSync } from 'ultrahtml';
 import { querySelector, querySelectorAll } from 'ultrahtml/selector';
 import {
   Player,
@@ -51,6 +51,18 @@ import {
   WHITESPACE_REGEX_STRING,
   HttpError
 } from './utils/index.js';
+
+/**
+ * Direct `td`/`th` children of a row, like jsdom's `row.cells`. Not
+ * `querySelectorAll(row, 'td')` - that is a descendant query and ultrahtml's
+ * selector engine has no `:scope`, so a table nested in a cell would leak cells
+ * and shift every index after it.
+ */
+const rowCells = (row: Node) =>
+  (row.type === ELEMENT_NODE ? row.children : []).filter(
+    (n): n is ElementNode =>
+      n.type === ELEMENT_NODE && (n.name === 'td' || n.name === 'th')
+  );
 
 /**
  * Gets a player's stats from the official OSRS JSON endpoint.
@@ -426,10 +438,7 @@ export async function getSkillPage(
   const players: PlayerSkillRow[] = [];
   playersHTML.forEach((row) => {
     // Omit first cell (pre-sailing link)
-    const [, rankCell, nameCell, levelCell, xpCell] = querySelectorAll(
-      row,
-      'td'
-    );
+    const [, rankCell, nameCell, levelCell, xpCell] = rowCells(row);
     const isDead = !!querySelector(nameCell, 'img');
     const nameElement = querySelector(nameCell, 'a');
 
@@ -475,7 +484,7 @@ export async function getActivityPage(
 
   const players: PlayerActivityRow[] = [];
   playersHTML.forEach((row) => {
-    const [rankCell, nameCell, scoreCell] = querySelectorAll(row, 'td');
+    const [rankCell, nameCell, scoreCell] = rowCells(row);
     const isDead = !!querySelector(nameCell, 'img');
     const nameElement = querySelector(nameCell, 'a');
 

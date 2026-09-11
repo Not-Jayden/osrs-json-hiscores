@@ -62,6 +62,11 @@ const allCluesTopPage = `<table><tbody>
   <tr class="personal-hiscores__row"><td class="right">2</td><td class="left"><img src="skull.png"/><a href="hiscorepersonal?user1=Dead Guy">Dead Guy</a></td><td class="right">567</td></tr>
 </tbody></table>`;
 
+// a cell containing a nested table, which must not leak cells into the row
+const nestedCellPage = `<table><tbody>
+  <tr class="personal-hiscores__row"><td class="right">1</td><td class="left"><table><tr><td>nested</td></tr></table><a href="hiscorepersonal?user1=Nested Guy">Nested Guy</a></td><td class="right">4,242</td></tr>
+</tbody></table>`;
+
 const textResponse = (body: string) => new Response(body, { status: 200 });
 const jsonResponse = (body: unknown) => Response.json(body, { status: 200 });
 
@@ -84,6 +89,9 @@ vi.stubGlobal(
     }
     if (getActivityPageURL('main', 'allClues', 1) === url) {
       return Promise.resolve(textResponse(allCluesTopPage));
+    }
+    if (getActivityPageURL('main', 'allClues', 2) === url) {
+      return Promise.resolve(textResponse(nestedCellPage));
     }
     if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME, true) === url) {
       return Promise.resolve(jsonResponse(lynxTitanStats));
@@ -356,6 +364,13 @@ test('Get activity top page', async () => {
   expect(data).toStrictEqual([
     { name: 'Tai', rank: 1, score: 1234, dead: false },
     { name: 'Dead Guy', rank: 2, score: 567, dead: true }
+  ]);
+});
+
+test('Get activity top page with a nested table in a cell', async () => {
+  const data = await getActivityPage('allClues', 'main', 2);
+  expect(data).toStrictEqual([
+    { name: 'Nested Guy', rank: 1, score: 4242, dead: false }
   ]);
 });
 
