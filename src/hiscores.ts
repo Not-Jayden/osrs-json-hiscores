@@ -1,5 +1,4 @@
-import { ELEMENT_NODE, ElementNode, Node, parse, renderSync } from 'ultrahtml';
-import { querySelector, querySelectorAll } from 'ultrahtml/selector';
+import { ELEMENT_NODE, ElementNode, Node, parse } from 'ultrahtml';
 import {
   Player,
   Activity,
@@ -47,22 +46,35 @@ import {
   Gamemode,
   SkillName,
   ActivityName,
-  WHITESPACE_REGEX,
-  WHITESPACE_REGEX_STRING,
   HttpError
 } from './utils/index.js';
 
 /**
  * Direct `td`/`th` children of a row, like jsdom's `row.cells`. Not
- * `querySelectorAll(row, 'td')` - that is a descendant query and ultrahtml's
- * selector engine has no `:scope`, so a table nested in a cell would leak cells
- * and shift every index after it.
+ * `findAll(row, ...)` - that is a descendant query, so a table nested in a
+ * cell would leak cells and shift every index after it.
  */
 const rowCells = (row: Node) =>
   (row.type === ELEMENT_NODE ? row.children : []).filter(
     (n): n is ElementNode =>
       n.type === ELEMENT_NODE && (n.name === 'td' || n.name === 'th')
   );
+
+const hasClass = (el: ElementNode, cls: string) =>
+  (el.attributes.class ?? '').split(/\s+/).includes(cls);
+
+const findAll = (
+  node: Node,
+  pred: (el: ElementNode) => boolean
+): ElementNode[] =>
+  ((node.children ?? []) as Node[])
+    .filter((n): n is ElementNode => n.type === ELEMENT_NODE)
+    .flatMap((el) => [...(pred(el) ? [el] : []), ...findAll(el, pred)]);
+
+const find = (node: Node, pred: (el: ElementNode) => boolean) =>
+  findAll(node, pred)[0] ?? null;
+
+const byTag = (name: string) => (el: ElementNode) => el.name === name;
 
 /**
  * Gets a player's stats from the official OSRS JSON endpoint.
@@ -110,19 +122,18 @@ export async function getRSNFormat(
   try {
     const response = await httpGet(url, config);
     const root = parse(await response.text());
-    const row = querySelector(
+    const row = find(
       root,
-      'tr.personal-hiscores__row.personal-hiscores__row--type-highlight'
+      (el) =>
+        el.name === 'tr' &&
+        hasClass(el, 'personal-hiscores__row--type-highlight')
     );
     if (row) {
-      return (
-        renderSync(row).match(
-          new RegExp(
-            rsn.replace(WHITESPACE_REGEX, WHITESPACE_REGEX_STRING),
-            'gi'
-          )
-        )?.[0] ?? rsn
+      const nameAnchor = find(
+        row,
+        (el) => el.name === 'a' && (el.attributes.href ?? '').includes('user1=')
       );
+      return rsnFromElement(nameAnchor) || rsn;
     }
   } catch {
     throw new HiScoresError();
@@ -433,14 +444,17 @@ export async function getSkillPage(
 
   const response = await httpGet(url, config);
   const root = parse(await response.text());
-  const playersHTML = querySelectorAll(root, 'tr.personal-hiscores__row');
+  const rows = findAll(
+    root,
+    (el) => el.name === 'tr' && hasClass(el, 'personal-hiscores__row')
+  );
 
   const players: PlayerSkillRow[] = [];
-  playersHTML.forEach((row) => {
+  rows.forEach((row) => {
     // Omit first cell (pre-sailing link)
     const [, rankCell, nameCell, levelCell, xpCell] = rowCells(row);
-    const isDead = !!querySelector(nameCell, 'img');
-    const nameElement = querySelector(nameCell, 'a');
+    const isDead = !!find(nameCell, byTag('img'));
+    const nameElement = find(nameCell, byTag('a'));
 
     players.push({
       name: rsnFromElement(nameElement),
@@ -480,13 +494,16 @@ export async function getActivityPage(
 
   const response = await httpGet(url, config);
   const root = parse(await response.text());
-  const playersHTML = querySelectorAll(root, 'tr.personal-hiscores__row');
+  const rows = findAll(
+    root,
+    (el) => el.name === 'tr' && hasClass(el, 'personal-hiscores__row')
+  );
 
   const players: PlayerActivityRow[] = [];
-  playersHTML.forEach((row) => {
+  rows.forEach((row) => {
     const [rankCell, nameCell, scoreCell] = rowCells(row);
-    const isDead = !!querySelector(nameCell, 'img');
-    const nameElement = querySelector(nameCell, 'a');
+    const isDead = !!find(nameCell, byTag('img'));
+    const nameElement = find(nameCell, byTag('a'));
 
     players.push({
       name: rsnFromElement(nameElement),
