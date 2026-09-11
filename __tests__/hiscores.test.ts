@@ -31,8 +31,7 @@ import {
   PlayerNotFoundError,
   HiScoresError,
   httpGet,
-  HttpError,
-  USER_AGENT
+  HttpError
 } from '../src/index';
 
 const B0ATY_NAME = 'B0ATY';
@@ -724,12 +723,13 @@ describe('httpGet', () => {
     await httpGet(url);
     await httpGet(url, { headers: { 'X-Custom': '1' } });
     await httpGet(url, { headers: new Headers({ 'X-Custom': '2' }) });
-    expect(seen.map((init) => new Headers(init.headers).get('user-agent'))).toEqual(
-      [USER_AGENT, USER_AGENT, USER_AGENT]
-    );
+    // the exact string matters - Jagex rejects requests without it
+    const expected =
+      'Mozilla/5.0 (Windows NT 6.4; rv:80.0.0) Gecko/20100101 Firefox/80.0.0';
     expect(
-      new Headers(seen[2].headers).get('x-custom')
-    ).toBe('2');
+      seen.map((init) => new Headers(init.headers).get('user-agent'))
+    ).toEqual([expected, expected, expected]);
+    expect(new Headers(seen[2].headers).get('x-custom')).toBe('2');
   });
 
   it('lets a caller override the User-Agent header', async () => {
