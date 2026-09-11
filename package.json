@@ -91,7 +91,7 @@
     "eslint-plugin-import": "^2.27.5",
     "husky": "^5.2.0",
     "lint-staged": "^13.2.3",
-    "np": "^7.7.0",
+    "np": "^11.2.2",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",
     "vitest": "^2.1.9"
