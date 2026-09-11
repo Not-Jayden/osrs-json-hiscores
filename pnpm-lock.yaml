@@ -113,9 +113,6 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0
     devDependencies:
-      '@types/node':
-        specifier: ^20.19.0
-        version: 20.19.43
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.0.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
