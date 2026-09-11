@@ -1,5 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { BinaryData, JSDOM } from 'jsdom';
+import { parse, renderSync } from 'ultrahtml';
+import { querySelector, querySelectorAll } from 'ultrahtml/selector';
 import {
   Player,
   Activity,
@@ -13,7 +13,7 @@ import {
   Bosses,
   GetStatsOptions,
   HiscoresResponse
-} from './types';
+} from './types.js';
 import {
   getStatsURL,
   SKILLS,
@@ -48,32 +48,33 @@ import {
   SkillName,
   ActivityName,
   WHITESPACE_REGEX,
-  WHITESPACE_REGEX_STRING
-} from './utils';
+  WHITESPACE_REGEX_STRING,
+  HttpError
+} from './utils/index.js';
 
 /**
  * Gets a player's stats from the official OSRS JSON endpoint.
  *
  * @param rsn Username of the player.
  * @param mode Gamemode to fetch ranks for.
- * @param config Optional axios request config object.
+ * @param config Optional fetch request config object.
  * @returns Official JSON stats object.
  */
 export async function getOfficialStats(
   rsn: string,
   mode: Gamemode = 'main',
-  config?: AxiosRequestConfig
+  config?: RequestInit
 ): Promise<HiscoresResponse> {
   validateRSN(rsn);
 
   const url = getStatsURL(mode, rsn, true);
   try {
-    const response = await httpGet<HiscoresResponse>(url, config);
-    return response.data;
+    const response = await httpGet(url, config);
+    return (await response.json()) as HiscoresResponse;
   } catch (err) {
-    if (!axios.isAxiosError(err)) throw err;
+    if (!(err instanceof HttpError)) throw err;
 
-    if (err.response?.status === 404) throw new PlayerNotFoundError();
+    if (err.status === 404) throw new PlayerNotFoundError();
 
     throw new HiScoresError();
   }
@@ -83,30 +84,27 @@ export async function getOfficialStats(
  * Screen scrapes the hiscores to get the formatted rsn of a player.
  *
  * @param rsn Username of the player.
- * @param config Optional axios request config object.
+ * @param config Optional fetch request config object.
  * @returns Formatted version of the rsn.
  */
 export async function getRSNFormat(
   rsn: string,
-  config?: AxiosRequestConfig,
+  config?: RequestInit,
   mode: Gamemode = 'main'
 ): Promise<string> {
   validateRSN(rsn);
 
   const url = getPlayerTableURL(mode, rsn);
   try {
-    const response = await httpGet<string | Buffer | BinaryData | undefined>(
-      url,
-      config
-    );
-    const dom = new JSDOM(response.data);
-    const row = dom.window.document.querySelector<HTMLTableRowElement>(
+    const response = await httpGet(url, config);
+    const root = parse(await response.text());
+    const row = querySelector(
+      root,
       'tr.personal-hiscores__row.personal-hiscores__row--type-highlight'
     );
     if (row) {
-      const { innerHTML } = row ?? {};
       return (
-        innerHTML?.match(
+        renderSync(row).match(
           new RegExp(
             rsn.replace(WHITESPACE_REGEX, WHITESPACE_REGEX_STRING),
             'gi'
@@ -311,18 +309,24 @@ export async function getStats(
   ];
   const shouldGetFormattedRsn = options?.shouldGetFormattedRsn ?? true;
 
-  const main = await getOfficialStats(rsn, 'main', options?.axiosConfigs?.main);
+  const main = await getOfficialStats(
+    rsn,
+    'main',
+    options?.requestConfigs?.main
+  );
 
   const getModeStats = async (
     mode: Extract<Gamemode, 'ironman' | 'hardcore' | 'ultimate'>
   ): Promise<HiscoresResponse | undefined> =>
     otherGamemodes.includes(mode)
-      ? getOfficialStats(rsn, mode, options?.axiosConfigs?.[mode]).catch(
+      ? getOfficialStats(rsn, mode, options?.requestConfigs?.[mode]).catch(
           () => undefined
         )
       : undefined;
   const formattedName = shouldGetFormattedRsn
-    ? await getRSNFormat(rsn, options?.axiosConfigs?.rsn).catch(() => undefined)
+    ? await getRSNFormat(rsn, options?.requestConfigs?.rsn).catch(
+        () => undefined
+      )
     : undefined;
 
   const player: Player = {
@@ -382,13 +386,13 @@ export async function getStats(
  *
  * @param rsn Username of the player.
  * @param mode Gamemode to fetch ranks for.
- * @param config Optional axios request config object.
+ * @param config Optional fetch request config object.
  * @returns Stats object.
  */
 export async function getStatsByGamemode(
   rsn: string,
   mode: Gamemode = 'main',
-  config?: AxiosRequestConfig
+  config?: RequestInit
 ): Promise<Stats> {
   validateRSN(rsn);
   if (!GAMEMODES.includes(mode)) {
@@ -404,7 +408,7 @@ export async function getSkillPage(
   skill: SkillName,
   mode: Gamemode = 'main',
   page: number = 1,
-  config?: AxiosRequestConfig
+  config?: RequestInit
 ): Promise<PlayerSkillRow[]> {
   if (!GAMEMODES.includes(mode)) {
     throw Error('Invalid game mode');
@@ -415,21 +419,19 @@ export async function getSkillPage(
   }
   const url = getSkillPageURL(mode, skill, page);
 
-  const response = await httpGet<string | Buffer | BinaryData | undefined>(
-    url,
-    config
-  );
-  const dom = new JSDOM(response.data);
-  const playersHTML = dom.window.document.querySelectorAll<HTMLTableRowElement>(
-    'tr.personal-hiscores__row'
-  );
+  const response = await httpGet(url, config);
+  const root = parse(await response.text());
+  const playersHTML = querySelectorAll(root, 'tr.personal-hiscores__row');
 
   const players: PlayerSkillRow[] = [];
   playersHTML.forEach((row) => {
     // Omit first cell (pre-sailing link)
-    const [, rankCell, nameCell, levelCell, xpCell] = Array.from(row.cells);
-    const isDead = !!nameCell.querySelector('img');
-    const nameElement = nameCell.querySelector('a');
+    const [, rankCell, nameCell, levelCell, xpCell] = querySelectorAll(
+      row,
+      'td'
+    );
+    const isDead = !!querySelector(nameCell, 'img');
+    const nameElement = querySelector(nameCell, 'a');
 
     players.push({
       name: rsnFromElement(nameElement),
@@ -449,14 +451,14 @@ export async function getSkillPage(
  * @param activity Name of the activity or boss to fetch hiscores for.
  * @param mode Gamemode to fetch ranks for.
  * @param page Page number.
- * @param config Optional axios request config object.
+ * @param config Optional fetch request config object.
  * @returns Array of `PlayerActivityRow` objects.
  */
 export async function getActivityPage(
   activity: ActivityName,
   mode: Gamemode = 'main',
   page: number = 1,
-  config?: AxiosRequestConfig
+  config?: RequestInit
 ): Promise<PlayerActivityRow[]> {
   if (!GAMEMODES.includes(mode)) {
     throw Error('Invalid game mode');
@@ -467,20 +469,15 @@ export async function getActivityPage(
   }
   const url = getActivityPageURL(mode, activity, page);
 
-  const response = await httpGet<string | Buffer | BinaryData | undefined>(
-    url,
-    config
-  );
-  const dom = new JSDOM(response.data);
-  const playersHTML = dom.window.document.querySelectorAll<HTMLTableRowElement>(
-    'tr.personal-hiscores__row'
-  );
+  const response = await httpGet(url, config);
+  const root = parse(await response.text());
+  const playersHTML = querySelectorAll(root, 'tr.personal-hiscores__row');
 
   const players: PlayerActivityRow[] = [];
   playersHTML.forEach((row) => {
-    const [rankCell, nameCell, scoreCell] = Array.from(row.cells);
-    const isDead = !!nameCell.querySelector('img');
-    const nameElement = nameCell.querySelector('a');
+    const [rankCell, nameCell, scoreCell] = querySelectorAll(row, 'td');
+    const isDead = !!querySelector(nameCell, 'img');
+    const nameElement = querySelector(nameCell, 'a');
 
     players.push({
       name: rsnFromElement(nameElement),

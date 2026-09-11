@@ -1,15 +1,26 @@
-import axios from 'axios';
 import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import {
+  test,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  Mock
+} from 'vitest';
 
 import {
   parseStats,
   getSkillPage,
+  getActivityPage,
   getStats,
   getStatsByGamemode,
   getRSNFormat,
   Stats,
   getPlayerTableURL,
   getSkillPageURL,
+  getActivityPageURL,
   getStatsURL,
   BOSSES,
   InvalidFormatError,
@@ -18,7 +29,10 @@ import {
   HiscoresResponse,
   InvalidRSNError,
   PlayerNotFoundError,
-  HiScoresError
+  HiScoresError,
+  httpGet,
+  HttpError,
+  USER_AGENT
 } from '../src/index';
 
 const B0ATY_NAME = 'B0ATY';
@@ -30,46 +44,61 @@ const LYNX_TITAN_FORMATTED_NAME = 'Lynx Titan';
 const NON_EXISTENT_NAME = 'nonExistent';
 const ERROR_NAME = 'errorName';
 
-const attackTopPage = readFileSync(`${__dirname}/attackTopPage.html`, 'utf8');
-const b0atyNamePage = readFileSync(`${__dirname}/b0atyNamePage.html`, 'utf8');
-const b0atyStatsCsv = readFileSync(`${__dirname}/b0atyStats.csv`, 'utf8');
+const here = (f: string) => fileURLToPath(new URL(f, import.meta.url));
+
+const attackTopPage = readFileSync(here('attackTopPage.html'), 'utf8');
+const b0atyNamePage = readFileSync(here('b0atyNamePage.html'), 'utf8');
+const b0atyStatsCsv = readFileSync(here('b0atyStats.csv'), 'utf8');
 const b0atyStatsJson: HiscoresResponse = JSON.parse(
-  readFileSync(`${__dirname}/b0atyStats.json`, 'utf8')
+  readFileSync(here('b0atyStats.json'), 'utf8')
 );
 const lynxTitanStats = JSON.parse(
-  readFileSync(`${__dirname}/lynxTitanStats.json`, 'utf8')
+  readFileSync(here('lynxTitanStats.json'), 'utf8')
 );
-const lynxTitanNamePage = readFileSync(
-  `${__dirname}/lynxTitanNamePage.html`,
-  'utf8'
-);
+const lynxTitanNamePage = readFileSync(here('lynxTitanNamePage.html'), 'utf8');
+const allCluesTopPage = `<table><tbody>
+  <tr class="personal-hiscores__row"><td class="right">1</td><td class="left"><a href="hiscorepersonal?user1=Tai">Tai</a></td><td class="right">1,234</td></tr>
+  <tr class="personal-hiscores__row"><td class="right">2</td><td class="left"><img src="skull.png"/><a href="hiscorepersonal?user1=Dead Guy">Dead Guy</a></td><td class="right">567</td></tr>
+</tbody></table>`;
 
-jest.spyOn(axios, 'get').mockImplementation((url) => {
-  const lynxUrls = [
-    getPlayerTableURL('main', LYNX_TITAN_SPACE_NAME),
-    getPlayerTableURL('main', LYNX_TITAN_UNDERSCORE_NAME),
-    getPlayerTableURL('main', LYNX_TITAN_HYPHEN_NAME)
-  ];
-  if (lynxUrls.includes(url)) {
-    return Promise.resolve({ data: lynxTitanNamePage });
-  }
-  if (getPlayerTableURL('main', B0ATY_NAME) === url) {
-    return Promise.resolve({ data: b0atyNamePage });
-  }
-  if (getSkillPageURL('main', 'attack', 1) === url) {
-    return Promise.resolve({ data: attackTopPage });
-  }
-  if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME, true) === url) {
-    return Promise.resolve({ status: 200, data: lynxTitanStats });
-  }
-  if (getPlayerTableURL('main', NON_EXISTENT_NAME) === url) {
-    return Promise.resolve({ data: '<html></html>' });
-  }
-  if (getPlayerTableURL('main', ERROR_NAME)) {
-    return Promise.reject();
-  }
-  throw new Error(`No mock response for URL: ${url}`);
-});
+const textResponse = (body: string) => new Response(body, { status: 200 });
+const jsonResponse = (body: unknown) => Response.json(body, { status: 200 });
+
+vi.stubGlobal(
+  'fetch',
+  vi.fn((url: string) => {
+    const lynxUrls = [
+      getPlayerTableURL('main', LYNX_TITAN_SPACE_NAME),
+      getPlayerTableURL('main', LYNX_TITAN_UNDERSCORE_NAME),
+      getPlayerTableURL('main', LYNX_TITAN_HYPHEN_NAME)
+    ];
+    if (lynxUrls.includes(url)) {
+      return Promise.resolve(textResponse(lynxTitanNamePage));
+    }
+    if (getPlayerTableURL('main', B0ATY_NAME) === url) {
+      return Promise.resolve(textResponse(b0atyNamePage));
+    }
+    if (getSkillPageURL('main', 'attack', 1) === url) {
+      return Promise.resolve(textResponse(attackTopPage));
+    }
+    if (getActivityPageURL('main', 'allClues', 1) === url) {
+      return Promise.resolve(textResponse(allCluesTopPage));
+    }
+    if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME, true) === url) {
+      return Promise.resolve(jsonResponse(lynxTitanStats));
+    }
+    if (getPlayerTableURL('main', NON_EXISTENT_NAME) === url) {
+      return Promise.resolve(textResponse('<html></html>'));
+    }
+    if (getStatsURL('main', NON_EXISTENT_NAME, true) === url) {
+      return Promise.resolve(new Response('', { status: 404 }));
+    }
+    if (getPlayerTableURL('main', ERROR_NAME) === url) {
+      return Promise.reject();
+    }
+    throw new Error(`No mock response for URL: ${url}`);
+  })
+);
 
 test('Parse CSV to json', () => {
   const csv = `246,2277,1338203419
@@ -317,6 +346,14 @@ test('Parse CSV to json', () => {
   expect(parseStats(csv)).toStrictEqual(expectedOutput);
 });
 
+test('Get activity top page', async () => {
+  const data = await getActivityPage('allClues');
+  expect(data).toStrictEqual([
+    { name: 'Tai', rank: 1, score: 1234, dead: false },
+    { name: 'Dead Guy', rank: 2, score: 567, dead: true }
+  ]);
+});
+
 test('Parse CSV with unknown activity', () => {
   const statsWithUnknownActivity = `${lynxTitanStats}
     -1,-1`;
@@ -541,11 +578,9 @@ test('Get attack top page', async () => {
 });
 
 test('Get non-existent player', async () => {
-  getStats('fishy').catch((err) => {
-    if (err?.response) {
-      expect(err.response.status).toBe(404);
-    }
-  });
+  await expect(getStats(NON_EXISTENT_NAME)).rejects.toThrow(
+    PlayerNotFoundError
+  );
 });
 
 test('Get stats by gamemode', async () => {
@@ -591,24 +626,20 @@ test('Get stats by gamemode', async () => {
 
 describe('Get stats options', () => {
   const rsn = 'player';
-  let axiosMock: jest.Mock;
+  let fetchMock: Mock;
   beforeEach(() => {
-    axios.get = jest.fn(
-      (url) =>
-        new Promise<any>((resolve) => {
-          resolve(
-            url === getPlayerTableURL('main', rsn)
-              ? { data: lynxTitanNamePage }
-              : { status: 200, data: lynxTitanStats }
-          );
-        })
+    fetchMock = vi.fn((url: string) =>
+      Promise.resolve(
+        url === getPlayerTableURL('main', rsn)
+          ? textResponse(lynxTitanNamePage)
+          : jsonResponse(lynxTitanStats)
+      )
     );
-    axiosMock = axios.get as any;
-    axiosMock.mockClear();
+    vi.stubGlobal('fetch', fetchMock);
   });
   it('fetches all gamemodes and formatted RSN when no options provided', async () => {
     await getStats(rsn);
-    expect(axiosMock.mock.calls.map((val) => val[0])).toEqual([
+    expect(fetchMock.mock.calls.map((val) => val[0])).toEqual([
       getStatsURL('main', rsn, true),
       getPlayerTableURL('main', rsn),
       getStatsURL('ironman', rsn, true),
@@ -619,7 +650,7 @@ describe('Get stats options', () => {
   it('skips fetching formatted RSN when option is provided', async () => {
     await getStats(rsn, { shouldGetFormattedRsn: false });
     expect(
-      axiosMock.mock.calls.some(
+      fetchMock.mock.calls.some(
         (val) => val[0] === getPlayerTableURL('main', rsn)
       )
     ).toBeFalsy();
@@ -629,7 +660,7 @@ describe('Get stats options', () => {
       otherGamemodes: ['ironman', 'ultimate']
     });
     expect(
-      axiosMock.mock.calls.some(
+      fetchMock.mock.calls.some(
         (val) => val[0] === getStatsURL('hardcore', rsn)
       )
     ).toBeFalsy();
@@ -646,4 +677,47 @@ test('CSV and JSON parsing outputs identical object', async () => {
   const csvOutput = parseStats(b0atyStatsCsv);
   const jsonOutput = parseJsonStats(b0atyStatsJson);
   expect(csvOutput).toEqual(jsonOutput);
+});
+
+describe('httpGet', () => {
+  const url = getStatsURL('main', B0ATY_NAME, true);
+  const capture = () => {
+    const seen: RequestInit[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init: RequestInit) => {
+        seen.push(init);
+        return Promise.resolve(new Response('', { status: 200 }));
+      })
+    );
+    return seen;
+  };
+
+  it('injects the User-Agent header for every request', async () => {
+    const seen = capture();
+    await httpGet(url);
+    await httpGet(url, { headers: { 'X-Custom': '1' } });
+    await httpGet(url, { headers: new Headers({ 'X-Custom': '2' }) });
+    expect(seen.map((init) => new Headers(init.headers).get('user-agent'))).toEqual(
+      [USER_AGENT, USER_AGENT, USER_AGENT]
+    );
+    expect(
+      new Headers(seen[2].headers).get('x-custom')
+    ).toBe('2');
+  });
+
+  it('lets a caller override the User-Agent header', async () => {
+    const seen = capture();
+    await httpGet(url, { headers: { 'User-Agent': 'custom-agent' } });
+    expect(new Headers(seen[0].headers).get('user-agent')).toBe('custom-agent');
+  });
+
+  it('throws an HttpError carrying the status on a non-2xx response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(new Response('', { status: 503 })))
+    );
+    await expect(httpGet(url)).rejects.toThrow(HttpError);
+    await expect(httpGet(url)).rejects.toMatchObject({ status: 503 });
+  });
 });

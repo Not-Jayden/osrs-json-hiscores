@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import * as ua from 'useragent-generator';
+import { Node, TEXT_NODE } from 'ultrahtml';
 import {
   Gamemode,
   SkillName,
@@ -11,7 +10,7 @@ import {
   ACTIVITIES,
   JSON_STATS_URL,
   InvalidRSNError
-} from './constants';
+} from './constants.js';
 
 /**
  * Will generate a stats URL for the official OSRS API.
@@ -75,14 +74,24 @@ export const getActivityPageURL = (
   )}&page=${page}`;
 
 /**
+ * Concatenates the text content of a node and all of its descendants.
+ *
+ * @param node Node to extract text from.
+ * @returns Text content of the node.
+ */
+const textFromNode = (node: Node): string =>
+  node.type === TEXT_NODE
+    ? String(node.value)
+    : ((node.children ?? []) as Node[]).map(textFromNode).join('');
+
+/**
  * Extracts a number from an OSRS hiscores table cell element.
  *
  * @param el OSRS hiscores table cell element.
  * @returns Number parsed from cell text.
  */
-export const numberFromElement = (el: Element | null) => {
-  const { innerHTML } = el ?? {};
-  const number = innerHTML?.replace(/[\n|,]/g, '') ?? '-1';
+export const numberFromElement = (el: Node | null) => {
+  const number = el ? textFromNode(el).replace(/[\n|,]/g, '') : '-1';
   return parseInt(number, 10);
 };
 
@@ -92,28 +101,43 @@ export const numberFromElement = (el: Element | null) => {
  * @param el OSRS hiscores table cell element.
  * @returns RSN parsed from cell text.
  */
-export const rsnFromElement = (el: HTMLAnchorElement | null) => {
-  const { innerHTML } = el ?? {};
-  return innerHTML?.replace(/\uFFFD/g, ' ') ?? '';
-};
+export const rsnFromElement = (el: Node | null) =>
+  el ? textFromNode(el).replace(/\uFFFD/g, ' ') : '';
 
 /**
- * Will run an Axios `GET` request against a given URL after injecting a `User-Agent` header.
+ * `ua.firefox(80)` inlined. Avoids pulling `useragent-generator` and its three
+ * transitive dependencies in for a single static string.
+ */
+export const USER_AGENT =
+  'Mozilla/5.0 (Windows NT 6.4; rv:80.0.0) Gecko/20100101 Firefox/80.0.0';
+
+/**
+ * Thrown when a hiscores request returns a non-2xx status.
+ */
+export class HttpError extends Error {
+  constructor(public readonly status: number) {
+    super(`Request failed with status code ${status}`);
+    this.name = 'HttpError';
+  }
+}
+
+/**
+ * Runs a `GET` request against a given URL after injecting a `User-Agent` header.
  *
  * @param url URL to run a `GET` request against.
- * @returns Axios response.
+ * @returns Fetch response.
  */
-export const httpGet = <Response>(
+export const httpGet = async (
   url: string,
-  config: AxiosRequestConfig = {}
-) =>
-  axios.get<Response>(url, {
-    headers: {
-      // without User-Agent header requests may be rejected by DDoS protection mechanism
-      'User-Agent': ua.firefox(80)
-    },
-    ...config
-  });
+  config: RequestInit = {}
+): Promise<Response> => {
+  const headers = new Headers(config.headers);
+  // without User-Agent header requests may be rejected by DDoS protection mechanism
+  if (!headers.has('user-agent')) headers.set('User-Agent', USER_AGENT);
+  const response = await fetch(url, { ...config, headers });
+  if (!response.ok) throw new HttpError(response.status);
+  return response;
+};
 
 /**
  * Validates that a provided RSN has the same username restrictions as Jagex.
