@@ -72,9 +72,9 @@ export async function getOfficialStats(
     const response = await httpGet(url, config);
     return (await response.json()) as HiscoresResponse;
   } catch (err) {
-    if (!(err instanceof HttpError)) throw err;
-
-    if (err.status === 404) throw new PlayerNotFoundError();
+    if (err instanceof HttpError && err.status === 404) {
+      throw new PlayerNotFoundError();
+    }
 
     throw new HiScoresError();
   }

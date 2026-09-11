@@ -43,6 +43,7 @@ const LYNX_TITAN_HYPHEN_NAME = 'lYnX-tiTaN';
 const LYNX_TITAN_FORMATTED_NAME = 'Lynx Titan';
 const NON_EXISTENT_NAME = 'nonExistent';
 const ERROR_NAME = 'errorName';
+const UNREACHABLE_NAME = 'unreachable';
 
 const here = (f: string) => fileURLToPath(new URL(f, import.meta.url));
 
@@ -95,6 +96,10 @@ vi.stubGlobal(
     }
     if (getPlayerTableURL('main', ERROR_NAME) === url) {
       return Promise.reject();
+    }
+    if (getStatsURL('main', UNREACHABLE_NAME, true) === url) {
+      // what fetch throws on DNS/connection/TLS failure, not an HttpError
+      return Promise.reject(new TypeError('fetch failed'));
     }
     throw new Error(`No mock response for URL: ${url}`);
   })
@@ -580,6 +585,12 @@ test('Get attack top page', async () => {
 test('Get non-existent player', async () => {
   await expect(getStats(NON_EXISTENT_NAME)).rejects.toThrow(
     PlayerNotFoundError
+  );
+});
+
+test('Get stats when the network is unreachable', async () => {
+  await expect(getStatsByGamemode(UNREACHABLE_NAME)).rejects.toThrow(
+    HiScoresError
   );
 });
 
