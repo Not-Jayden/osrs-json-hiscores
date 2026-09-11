@@ -59,6 +59,8 @@ If you type-check your dependencies (`"skipLibCheck": false`), your `tsconfig.js
   `fetch`. Nothing extra to install — Node 18+ already provides `fetch`.
 - A non-2xx response now throws `HttpError`, which carries `.status`. `PlayerNotFoundError` for a missing
   player and `HiScoresError` for a failing or unreachable hiscores are unchanged.
+- A response body that isn't valid JSON throws `HiScoresError`. Previously the unparsed body reached the
+  stats parser and leaked a raw `TypeError`.
 
 ## How to use
 
