@@ -1,4 +1,4 @@
-import { ELEMENT_NODE, ElementNode, Node, parse } from 'ultrahtml';
+import { ELEMENT_NODE, ElementNode, Node, TEXT_NODE, parse } from 'ultrahtml';
 import {
   Player,
   Activity,
@@ -22,8 +22,6 @@ import {
   getSkillPageURL,
   GAMEMODES,
   ACTIVITIES,
-  numberFromElement,
-  rsnFromElement,
   getActivityPageURL,
   httpGet,
   BOSSES,
@@ -71,6 +69,31 @@ const find = (node: Node, pred: (el: ElementNode) => boolean) =>
   findAll(node, pred)[0] ?? null;
 
 const byTag = (name: string) => (el: ElementNode) => el.name === name;
+
+const textFromNode = (node: Node): string =>
+  node.type === TEXT_NODE
+    ? String(node.value)
+    : ((node.children ?? []) as Node[]).map(textFromNode).join('');
+
+/**
+ * Extracts a number from an OSRS hiscores table cell element.
+ *
+ * @param el OSRS hiscores table cell element.
+ * @returns Number parsed from cell text.
+ */
+const numberFromElement = (el: Node | null) => {
+  const number = el ? textFromNode(el).replace(/[\n|,]/g, '') : '-1';
+  return parseInt(number, 10);
+};
+
+/**
+ * Extracts a RSN from an OSRS hiscores table cell element.
+ *
+ * @param el OSRS hiscores table cell element.
+ * @returns RSN parsed from cell text.
+ */
+const rsnFromElement = (el: Node | null) =>
+  el ? textFromNode(el).replace(/\uFFFD/g, ' ') : '';
 
 /** Jagex spells a name with spaces. Callers may pass -, _ or stray whitespace. */
 const normalizeName = (name: string) =>

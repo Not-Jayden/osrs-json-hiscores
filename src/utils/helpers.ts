@@ -1,4 +1,3 @@
-import { Node, TEXT_NODE } from 'ultrahtml';
 import {
   Gamemode,
   SkillName,
@@ -72,31 +71,6 @@ export const getActivityPageURL = (
   }${SCORES_URL}category_type=1&table=${ACTIVITIES.indexOf(
     activity
   )}&page=${page}`;
-
-const textFromNode = (node: Node): string =>
-  node.type === TEXT_NODE
-    ? String(node.value)
-    : ((node.children ?? []) as Node[]).map(textFromNode).join('');
-
-/**
- * Extracts a number from an OSRS hiscores table cell element.
- *
- * @param el OSRS hiscores table cell element.
- * @returns Number parsed from cell text.
- */
-export const numberFromElement = (el: Node | null) => {
-  const number = el ? textFromNode(el).replace(/[\n|,]/g, '') : '-1';
-  return parseInt(number, 10);
-};
-
-/**
- * Extracts a RSN from an OSRS hiscores table cell element.
- *
- * @param el OSRS hiscores table cell element.
- * @returns RSN parsed from cell text.
- */
-export const rsnFromElement = (el: Node | null) =>
-  el ? textFromNode(el).replace(/\uFFFD/g, ' ') : '';
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 6.4; rv:80.0.0) Gecko/20100101 Firefox/80.0.0';
