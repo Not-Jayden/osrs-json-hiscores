@@ -32,7 +32,7 @@ import {
   HiScoresError,
   httpGet,
   HttpError
-} from '../src/index';
+} from '../src/index.js';
 
 const B0ATY_NAME = 'B0ATY';
 const B0ATY_FORMATTED_NAME = 'B0aty';
@@ -46,6 +46,7 @@ const UNREACHABLE_NAME = 'unreachable';
 const MALFORMED_NAME = 'malformed';
 const TROPHY_DIVERGENT_NAME = 'tRoPhy CaSe';
 const TROPHY_DIVERGENT_FORMATTED_NAME = 'Trophy Case';
+const NOT_THIS_PLAYER_NAME = 'Not The Row';
 
 const here = (f: string) => fileURLToPath(new URL(f, import.meta.url));
 
@@ -101,6 +102,9 @@ vi.stubGlobal(
     }
     if (getActivityPageURL('main', 'allClues', 2) === url) {
       return Promise.resolve(textResponse(nestedCellPage));
+    }
+    if (getPlayerTableURL('main', NOT_THIS_PLAYER_NAME) === url) {
+      return Promise.resolve(textResponse(lynxTitanNamePage));
     }
     if (getPlayerTableURL('main', TROPHY_DIVERGENT_NAME) === url) {
       return Promise.resolve(textResponse(divergentTrophyPage));
@@ -421,6 +425,10 @@ describe('Get name format', () => {
   it('reads the name cell, not a trophy link which spells it differently', async () => {
     const data = await getRSNFormat(TROPHY_DIVERGENT_NAME);
     expect(data).toBe(TROPHY_DIVERGENT_FORMATTED_NAME);
+  });
+  it('falls back to the given name when the highlighted row is a different player', async () => {
+    const data = await getRSNFormat(NOT_THIS_PLAYER_NAME);
+    expect(data).toBe(NOT_THIS_PLAYER_NAME);
   });
   it('throws an error for a name with invalid characters', async () => {
     await expect(getRSNFormat('b&aty')).rejects.toThrow(InvalidRSNError);

@@ -72,6 +72,16 @@ const find = (node: Node, pred: (el: ElementNode) => boolean) =>
 
 const byTag = (name: string) => (el: ElementNode) => el.name === name;
 
+/** Jagex spells a name with spaces. Callers may pass -, _ or stray whitespace. */
+const normalizeName = (name: string) =>
+  name
+    .replace(/[ _-]+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+const sameName = (a: string, b: string) =>
+  normalizeName(a) === normalizeName(b);
+
 /**
  * Gets a player's stats from the official OSRS JSON endpoint.
  *
@@ -129,7 +139,8 @@ export async function getRSNFormat(
         row,
         (el) => el.name === 'a' && (el.attributes.href ?? '').includes('user1=')
       );
-      return rsnFromElement(nameAnchor) || rsn;
+      const name = rsnFromElement(nameAnchor);
+      return name && sameName(name, rsn) ? name : rsn;
     }
   } catch {
     throw new HiScoresError();
