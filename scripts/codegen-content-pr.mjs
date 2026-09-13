@@ -22,7 +22,12 @@ const bin = (name) => `${root}node_modules/.bin/${name}`;
 /** The only paths codegen is allowed to change in a PR. */
 const GENERATED_FILES = ['src/utils/generated', 'README.md'];
 
-/** Same gate CI runs, so a red PR is never filed. */
+/**
+ * Same gate CI runs, so a red PR is never filed.
+ *
+ * ponytail: mirrors main.yml's tool list by hand; add lint:check/format:check
+ * scripts to package.json if a third caller ever needs the same list.
+ */
 const GATE = [
   [bin('prettier'), ['--check', '{src,__tests__}/**/*.ts', 'README.md']],
   [bin('eslint'), ['{src,__tests__}/**/*.ts']],
