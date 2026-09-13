@@ -59,6 +59,8 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - `parseStats`, `InvalidFormatError` and `STATS_URL` are removed. The CSV endpoint carries the same
   values as the JSON endpoint `getStats` already uses, so a separate parser was redundant.
 - `getStatsURL` drops its third parameter and always builds the JSON endpoint URL.
+- `ActivityName` gains `'gridPoints'`, so exhaustive switches and `Record<ActivityName, X>` need a new
+  case.
 
 ## How to use
 
@@ -129,6 +131,7 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 
 | Activity       |      Param      |
 | -------------- | :-------------: |
+| Grid Points    |  `gridPoints`   |
 | League Points  | `leaguePoints`  |
 | Deadman Points | `deadmanPoints` |
 
