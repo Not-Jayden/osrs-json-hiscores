@@ -1,7 +1,8 @@
 name: Content drift
 
 on:
-  # A failed run is the drift signal: the hiscores offer content we do not ship.
+  # Daily: regenerate from the endpoint and open a draft PR when it has content we
+  # do not ship. A run that finds nothing to do exits green and opens nothing.
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
@@ -31,11 +32,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
-      - if: github.event_name == 'schedule'
-        run: node scripts/regen-content.mjs --check
-
-      - if: github.event_name == 'workflow_dispatch'
-        run: |
+      - run: |
           git config user.name "Not-Jayden"
           git config user.email "16816250+Not-Jayden@users.noreply.github.com"
           node scripts/codegen-content-pr.mjs ${{ inputs.dry_run && '--dry' || '' }}
