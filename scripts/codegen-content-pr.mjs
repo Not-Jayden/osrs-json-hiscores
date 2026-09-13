@@ -76,6 +76,8 @@ export async function codegen({ dry = false } = {}) {
     // --intent-to-add so generated files show in the diff before their first commit.
     run('git', ['add', '-N', '--', ...GENERATED_FILES]);
     run('git', ['--no-pager', 'diff', '--', ...GENERATED_FILES]);
+    console.log('\n--- PR body ---\n');
+    console.log(prBody(title, notes));
     return;
   }
 
