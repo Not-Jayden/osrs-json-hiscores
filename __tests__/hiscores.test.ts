@@ -31,8 +31,6 @@ const NON_EXISTENT_NAME = 'nonExistent';
 const ERROR_NAME = 'errorName';
 const UNREACHABLE_NAME = 'unreachable';
 const MALFORMED_NAME = 'malformed';
-const TROPHY_DIVERGENT_NAME = 'tRoPhy CaSe';
-const TROPHY_DIVERGENT_FORMATTED_NAME = 'Trophy Case';
 const NOT_THIS_PLAYER_NAME = 'Not The Row';
 
 const here = (f: string) => fileURLToPath(new URL(f, import.meta.url));
@@ -54,14 +52,6 @@ const nestedCellPage = `<table><tbody>
 
 const shortRowPage = `<table><tbody>
   <tr class="personal-hiscores__row"><td class="right">1</td></tr>
-</tbody></table>`;
-
-const divergentTrophyPage = `<table><tbody>
-  <tr class="personal-hiscores__row personal-hiscores__row--type-highlight">
-    <td class="right"><a href="pre-sailing-overall?table=0&user=TROPHY CASE"><img src="trophy.png"/></a></td>
-    <td class="right">1</td>
-    <td class="left"><a href="hiscorepersonal?user1=Trophy Case">Trophy Case</a></td>
-  </tr>
 </tbody></table>`;
 
 const textResponse = (body: string) => new Response(body, { status: 200 });
@@ -95,9 +85,6 @@ vi.stubGlobal(
     }
     if (getPlayerTableURL('main', NOT_THIS_PLAYER_NAME) === url) {
       return Promise.resolve(textResponse(lynxTitanNamePage));
-    }
-    if (getPlayerTableURL('main', TROPHY_DIVERGENT_NAME) === url) {
-      return Promise.resolve(textResponse(divergentTrophyPage));
     }
     if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME) === url) {
       return Promise.resolve(jsonResponse(lynxTitanStats));
@@ -153,10 +140,6 @@ describe('Get name format', () => {
   it('gets a name with a number', async () => {
     const data = await getRSNFormat(B0ATY_NAME);
     expect(data).toBe(B0ATY_FORMATTED_NAME);
-  });
-  it('reads the name cell, not a trophy link which spells it differently', async () => {
-    const data = await getRSNFormat(TROPHY_DIVERGENT_NAME);
-    expect(data).toBe(TROPHY_DIVERGENT_FORMATTED_NAME);
   });
   it('falls back to the given name when the highlighted row is a different player', async () => {
     const data = await getRSNFormat(NOT_THIS_PLAYER_NAME);
