@@ -14,7 +14,8 @@
     "lint": "eslint --fix \"{src,__tests__}/**/*.ts\"",
     "test": "vitest run",
     "prepublish": "pnpm run build",
-    "release": "np"
+    "release": "np",
+    "check:scripts": "tsc -p tsconfig.scripts.json"
   },
   "repository": {
     "type": "git",
@@ -71,7 +72,22 @@
     ],
     "rules": {
       "max-classes-per-file": "off"
-    }
+    },
+    "overrides": [
+      {
+        "files": [
+          "scripts/**/*.ts"
+        ],
+        "rules": {
+          "import/no-extraneous-dependencies": "off",
+          "no-await-in-loop": "off",
+          "no-console": "off",
+          "no-continue": "off",
+          "no-restricted-syntax": "off",
+          "import/extensions": "off"
+        }
+      }
+    ]
   },
   "prettier": {
     "trailingComma": "none",
@@ -84,6 +100,7 @@
     "ultrahtml": "^1.7.0"
   },
   "devDependencies": {
+    "@types/node": "^22.20.2",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.44.0",

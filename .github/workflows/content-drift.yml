@@ -27,7 +27,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.19.0
+          # The scripts are TypeScript: type stripping is native from 22.18.
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
@@ -35,6 +36,6 @@ jobs:
       - run: |
           git config user.name "Not-Jayden"
           git config user.email "16816250+Not-Jayden@users.noreply.github.com"
-          node scripts/codegen-content-pr.mjs ${{ inputs.dry_run && '--dry' || '' }}
+          node scripts/codegen-content-pr.ts ${{ inputs.dry_run && '--dry' || '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,4 @@
-/* eslint-disable import/extensions -- the scripts are .mjs, imported from TS */
+/* eslint-disable import/extensions -- Node strips types, so the real .ts path is required */
 import prettier from 'prettier';
 import { expect, test } from 'vitest';
 
@@ -8,8 +8,8 @@ import {
   renderBosses,
   renderBossesTable,
   validate
-} from '../scripts/regen-content.mjs';
-import { prBody } from '../scripts/codegen-content-pr.mjs';
+} from '../scripts/regen-content.ts';
+import { prBody } from '../scripts/codegen-content-pr.ts';
 import { FIXED_ACTIVITIES } from '../src/utils/generated/activities.js';
 import {
   ACTIVITIES,

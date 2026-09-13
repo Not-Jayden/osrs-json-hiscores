@@ -23,7 +23,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec eslint "{src,__tests__}/**/*.ts"
-      - run: pnpm exec prettier --check "{src,__tests__}/**/*.ts" README.md
+      - run: pnpm exec eslint "{src,__tests__,scripts}/**/*.ts"
+      - run: pnpm exec prettier --check "{src,__tests__,scripts}/**/*.ts" README.md
       - run: pnpm build
+      - run: pnpm run check:scripts
       - run: pnpm test
