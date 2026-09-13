@@ -56,6 +56,22 @@ test('prettier leaves the rendered content in the shipped style', async () => {
   );
 });
 
+test('rendered order is the endpoint order, never sorted', () => {
+  // getActivityPageURL passes ACTIVITIES.indexOf(boss) as the hiscores `table=`
+  // parameter, so BOSSES order is not cosmetic: sorting it here would send every
+  // request after the inserted name to the wrong table.
+  const entries: [string, string][] = [
+    ['zulrah', 'Zulrah'],
+    ['brutus', 'Brutus'],
+    ['abyssalSire', 'Abyssal Sire']
+  ];
+  const rendered = renderBosses(entries);
+  const positions = entries.map(([key]) => rendered.indexOf(key));
+
+  expect(positions.every((at) => at > -1)).toBe(true);
+  expect(positions).toStrictEqual([...positions].sort((a, b) => a - b));
+});
+
 test('regeneration refuses content it cannot reproduce', () => {
   const one = [['araxxor', 'Araxxor']] as [string, string][];
 
