@@ -65,6 +65,8 @@ If you type-check your dependencies (`"skipLibCheck": false`), your `tsconfig.js
   so `response.data` becomes `await response.json()`.
 - `numberFromElement` and `rsnFromElement` now take ultrahtml's `Node` rather than a DOM element. Both are
   still exported, for use on markup you have parsed with `parse` from `ultrahtml`.
+- `WHITESPACE_REGEX` and `WHITESPACE_REGEX_STRING` are no longer exported. They only existed to build the
+  regex `getRSNFormat` used to have.
 
 ## How to use
 
