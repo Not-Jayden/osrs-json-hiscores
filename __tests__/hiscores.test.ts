@@ -64,7 +64,6 @@ const allCluesTopPage = `<table><tbody>
   <tr class="personal-hiscores__row"><td class="right">2</td><td class="left"><img src="skull.png"/><a href="hiscorepersonal?user1=Dead Guy">Dead Guy</a></td><td class="right">567</td></tr>
 </tbody></table>`;
 
-// a cell containing a nested table, which must not leak cells into the row
 const nestedCellPage = `<table><tbody>
   <tr class="personal-hiscores__row"><td class="right">1</td><td class="left"><table><tr><td>nested</td></tr></table><a href="hiscorepersonal?user1=Nested Guy">Nested Guy</a></td><td class="right">4,242</td></tr>
 </tbody></table>`;
@@ -123,7 +122,6 @@ vi.stubGlobal(
       return Promise.reject(new TypeError('fetch failed'));
     }
     if (getStatsURL('main', MALFORMED_NAME, true) === url) {
-      // 200, but response.json() will throw a SyntaxError
       return Promise.resolve(textResponse('not json'));
     }
     throw new Error(`No mock response for URL: ${url}`);
@@ -751,7 +749,6 @@ describe('httpGet', () => {
     await httpGet(url);
     await httpGet(url, { headers: { 'X-Custom': '1' } });
     await httpGet(url, { headers: new Headers({ 'X-Custom': '2' }) });
-    // the exact string matters - Jagex rejects requests without it
     const expected =
       'Mozilla/5.0 (Windows NT 6.4; rv:80.0.0) Gecko/20100101 Firefox/80.0.0';
     expect(

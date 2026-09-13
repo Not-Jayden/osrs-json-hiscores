@@ -73,12 +73,6 @@ export const getActivityPageURL = (
     activity
   )}&page=${page}`;
 
-/**
- * Concatenates the text content of a node and all of its descendants.
- *
- * @param node Node to extract text from.
- * @returns Text content of the node.
- */
 const textFromNode = (node: Node): string =>
   node.type === TEXT_NODE
     ? String(node.value)
@@ -104,18 +98,10 @@ export const numberFromElement = (el: Node | null) => {
 export const rsnFromElement = (el: Node | null) =>
   el ? textFromNode(el).replace(/\uFFFD/g, ' ') : '';
 
-/**
- * `ua.firefox(80)` inlined. Avoids pulling `useragent-generator` and its three
- * transitive dependencies in for a single static string.
- *
- * Jagex rejects requests that do not send this, so the value is load-bearing.
- */
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 6.4; rv:80.0.0) Gecko/20100101 Firefox/80.0.0';
 
-/**
- * Thrown when a hiscores request returns a non-2xx status.
- */
+/** Thrown when a request returns a non-2xx status. */
 export class HttpError extends Error {
   constructor(public readonly status: number) {
     super(`Request failed with status code ${status}`);

@@ -49,11 +49,7 @@ import {
   HttpError
 } from './utils/index.js';
 
-/**
- * Direct `td`/`th` children of a row, like jsdom's `row.cells`. Not
- * `findAll(row, ...)` - that is a descendant query, so a table nested in a
- * cell would leak cells and shift every index after it.
- */
+/** Direct children only, so a nested table cannot add cells. */
 const rowCells = (row: Node) =>
   (row.type === ELEMENT_NODE ? row.children : []).filter(
     (n): n is ElementNode =>

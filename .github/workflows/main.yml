@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 20.19.0 is the declared floor: it's the first Node that enables
-        # require(esm) by default, which this ESM-only package relies on.
+        # must include the engines floor from package.json
         node-version:
           - 20.19.0
           - lts/*
