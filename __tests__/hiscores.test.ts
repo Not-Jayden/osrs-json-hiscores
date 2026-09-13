@@ -99,23 +99,23 @@ vi.stubGlobal(
     if (getPlayerTableURL('main', TROPHY_DIVERGENT_NAME) === url) {
       return Promise.resolve(textResponse(divergentTrophyPage));
     }
-    if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME, true) === url) {
+    if (getStatsURL('main', LYNX_TITAN_FORMATTED_NAME) === url) {
       return Promise.resolve(jsonResponse(lynxTitanStats));
     }
     if (getPlayerTableURL('main', NON_EXISTENT_NAME) === url) {
       return Promise.resolve(textResponse('<html></html>'));
     }
-    if (getStatsURL('main', NON_EXISTENT_NAME, true) === url) {
+    if (getStatsURL('main', NON_EXISTENT_NAME) === url) {
       return Promise.resolve(new Response('', { status: 404 }));
     }
     if (getPlayerTableURL('main', ERROR_NAME) === url) {
       return Promise.reject();
     }
-    if (getStatsURL('main', UNREACHABLE_NAME, true) === url) {
+    if (getStatsURL('main', UNREACHABLE_NAME) === url) {
       // what fetch throws on DNS/connection/TLS failure, not an HttpError
       return Promise.reject(new TypeError('fetch failed'));
     }
-    if (getStatsURL('main', MALFORMED_NAME, true) === url) {
+    if (getStatsURL('main', MALFORMED_NAME) === url) {
       return Promise.resolve(textResponse('not json'));
     }
     throw new Error(`No mock response for URL: ${url}`);
@@ -438,11 +438,11 @@ describe('Get stats options', () => {
   it('fetches all gamemodes and formatted RSN when no options provided', async () => {
     await getStats(rsn);
     expect(fetchMock.mock.calls.map((val) => val[0])).toEqual([
-      getStatsURL('main', rsn, true),
+      getStatsURL('main', rsn),
       getPlayerTableURL('main', rsn),
-      getStatsURL('ironman', rsn, true),
-      getStatsURL('hardcore', rsn, true),
-      getStatsURL('ultimate', rsn, true)
+      getStatsURL('ironman', rsn),
+      getStatsURL('hardcore', rsn),
+      getStatsURL('ultimate', rsn)
     ]);
   });
   it('skips fetching formatted RSN when option is provided', async () => {
@@ -472,7 +472,7 @@ describe('Get stats options', () => {
 });
 
 describe('httpGet', () => {
-  const url = getStatsURL('main', B0ATY_NAME, true);
+  const url = getStatsURL('main', B0ATY_NAME);
   const capture = () => {
     const seen: RequestInit[] = [];
     vi.stubGlobal(

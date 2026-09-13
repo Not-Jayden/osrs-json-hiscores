@@ -3,7 +3,6 @@ import {
   SkillName,
   ActivityName,
   GAMEMODE_URL,
-  STATS_URL,
   SCORES_URL,
   SKILLS,
   ACTIVITIES,
@@ -16,13 +15,10 @@ import {
  *
  * @param gamemode Gamemode to fetch ranks for.
  * @param rsn Username of the player.
- * @param json If the JSON endpoint is desired instead of CSV.
  * @returns Encoded stats URL.
  */
-export const getStatsURL = (gamemode: Gamemode, rsn: string, json = false) =>
-  `${GAMEMODE_URL[gamemode]}${
-    json ? JSON_STATS_URL : STATS_URL
-  }${encodeURIComponent(rsn)}`;
+export const getStatsURL = (gamemode: Gamemode, rsn: string) =>
+  `${GAMEMODE_URL[gamemode]}${JSON_STATS_URL}${encodeURIComponent(rsn)}`;
 
 /**
  * Will generate a player table URL for the official OSRS hiscores website.

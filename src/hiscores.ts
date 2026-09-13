@@ -115,7 +115,7 @@ export async function getOfficialStats(
 ): Promise<HiscoresResponse> {
   validateRSN(rsn);
 
-  const url = getStatsURL(mode, rsn, true);
+  const url = getStatsURL(mode, rsn);
   try {
     const response = await httpGet(url, config);
     return (await response.json()) as HiscoresResponse;
@@ -168,7 +168,7 @@ export async function getRSNFormat(
 /**
  * Parses official JSON object of raw stats and returns a stats object.
  *
- * @param csv Raw JSON from the official OSRS API.
+ * @param json Raw JSON from the official OSRS API.
  * @returns Parsed stats object.
  */
 export function parseJsonStats(json: HiscoresResponse): Stats {

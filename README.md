@@ -56,8 +56,9 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - A response body that isn't valid JSON throws `HiScoresError`.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
-- `parseStats` and `InvalidFormatError` are removed. The CSV endpoint carries the same values as the
-  JSON endpoint `getStats` already uses, so a separate parser was redundant.
+- `parseStats`, `InvalidFormatError` and `STATS_URL` are removed. The CSV endpoint carries the same
+  values as the JSON endpoint `getStats` already uses, so a separate parser was redundant.
+- `getStatsURL` drops its third parameter and always builds the JSON endpoint URL.
 
 ## How to use
 

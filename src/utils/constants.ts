@@ -1,5 +1,4 @@
 export const BASE_URL = 'https://secure.runescape.com/m=hiscore_oldschool';
-export const STATS_URL = 'index_lite.ws?player=';
 export const JSON_STATS_URL = 'index_lite.json?player=';
 export const SCORES_URL = 'overall.ws?';
 
