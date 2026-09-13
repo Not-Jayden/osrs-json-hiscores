@@ -1,0 +1,40 @@
+name: Content drift
+
+on:
+  # A failed run is the drift signal: the hiscores offer content we do not ship.
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Show the diff without opening a PR
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - if: github.event_name == 'schedule'
+        run: node scripts/regen-content.mjs --check
+
+      - if: github.event_name != 'schedule'
+        run: |
+          git config user.name "Not-Jayden"
+          git config user.email "16816250+Not-Jayden@users.noreply.github.com"
+          node scripts/codegen-content-pr.mjs ${{ inputs.dry_run && '--dry' || '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
