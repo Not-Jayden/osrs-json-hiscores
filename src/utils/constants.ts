@@ -314,9 +314,9 @@ export const FORMATTED_RIFTS_CLOSED = 'Rifts closed';
 export const FORMATTED_COLOSSEUM_GLORY = 'Colosseum Glory';
 export const FORMATTED_COLLECTIONS_LOGGED = 'Collections Logged';
 
-export const INVALID_FORMAT_ERROR = 'Invalid hiscores format';
-export const PLAYER_NOT_FOUND_ERROR = 'Player not found';
-export const HISCORES_ERROR = 'HiScores not responding';
+const INVALID_FORMAT_ERROR = 'Invalid hiscores format';
+const PLAYER_NOT_FOUND_ERROR = 'Player not found';
+const HISCORES_ERROR = 'HiScores not responding';
 
 export class InvalidFormatError extends Error {
   __proto__ = Error;
