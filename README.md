@@ -137,6 +137,8 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 
 ### Bosses
 
+<!-- begin:bosses -->
+
 | Boss Name                         |             Param              |
 | --------------------------------- | :----------------------------: |
 | Abyssal Sire                      |         `abyssalSire`          |
@@ -150,8 +152,8 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 | Callisto                          |           `callisto`           |
 | Calvar'ion                        |          `calvarion`           |
 | Cerberus                          |           `cerberus`           |
-| Chambers Of Xeric                 |       `chambersOfXeric`        |
-| Chambers Of Xeric: Challenge Mode | `chambersOfXericChallengeMode` |
+| Chambers of Xeric                 |       `chambersOfXeric`        |
+| Chambers of Xeric: Challenge Mode | `chambersOfXericChallengeMode` |
 | Chaos Elemental                   |        `chaosElemental`        |
 | Chaos Fanatic                     |         `chaosFanatic`         |
 | Commander Zilyana                 |       `commanderZilyana`       |
@@ -170,7 +172,7 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 | Kalphite Queen                    |        `kalphiteQueen`         |
 | King Black Dragon                 |       `kingBlackDragon`        |
 | Kraken                            |            `kraken`            |
-| Kreearra                          |           `kreeArra`           |
+| Kree'Arra                         |           `kreeArra`           |
 | K'ril Tsutsaroth                  |        `krilTsutsaroth`        |
 | Lunar Chests                      |         `lunarChests`          |
 | Mad Angel                         |           `madAngel`           |
@@ -184,6 +186,7 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 | Sarachnis                         |          `sarachnis`           |
 | Scorpia                           |           `scorpia`            |
 | Scurrius                          |           `scurrius`           |
+| Shellbane Gryphon                 |       `shellbaneGryphon`       |
 | Skotizo                           |           `skotizo`            |
 | Sol Heredit                       |          `solHeredit`          |
 | Spindel                           |           `spindel`            |
@@ -194,8 +197,8 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 | The Leviathan                     |          `leviathan`           |
 | The Royal Titans                  |         `royalTitans`          |
 | The Whisperer                     |          `whisperer`           |
-| Theatre Of Blood                  |        `theatreOfBlood`        |
-| Theatre Of Blood: Hard Mode       |    `theatreOfBloodHardMode`    |
+| Theatre of Blood                  |        `theatreOfBlood`        |
+| Theatre of Blood: Hard Mode       |    `theatreOfBloodHardMode`    |
 | Thermonuclear Smoke Devil         |   `thermonuclearSmokeDevil`    |
 | Tombs of Amascut                  |        `tombsOfAmascut`        |
 | Tombs of Amascut: Expert Mode     |   `tombsOfAmascutExpertMode`   |
@@ -203,12 +206,14 @@ Activities consist of all levels of clue scrolls as well as minigames and bosses
 | TzTok-Jad                         |           `tzTokJad`           |
 | Vardorvis                         |          `vardorvis`           |
 | Venenatis                         |          `venenatis`           |
-| Vetion                            |            `vetion`            |
+| Vet'ion                           |            `vetion`            |
 | Vorkath                           |           `vorkath`            |
 | Wintertodt                        |          `wintertodt`          |
 | Yama                              |             `yama`             |
 | Zalcano                           |           `zalcano`            |
 | Zulrah                            |            `zulrah`            |
+
+<!-- end:bosses -->
 
 ## What you'll get
 

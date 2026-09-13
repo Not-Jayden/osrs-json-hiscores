@@ -1,3 +1,9 @@
+import { BOSSES } from './generated/bosses.js';
+
+// Endpoint-derived content lives in ./generated — regenerate with scripts/regen-content.mjs.
+export * from './generated/bosses.js';
+export * from './generated/skills.js';
+
 export const BASE_URL = 'https://secure.runescape.com/m=hiscore_oldschool';
 export const JSON_STATS_URL = 'index_lite.json?player=';
 export const SCORES_URL = 'overall.ws?';
@@ -18,34 +24,7 @@ export const GAMEMODE_URL: GamemodeUrl = {
   oneDefence: `${BASE_URL}_skiller_defence/`,
   freshStart: `${BASE_URL}_fresh_start/`
 };
-export const SKILLS = [
-  'overall',
-  'attack',
-  'defence',
-  'strength',
-  'hitpoints',
-  'ranged',
-  'prayer',
-  'magic',
-  'cooking',
-  'woodcutting',
-  'fletching',
-  'fishing',
-  'firemaking',
-  'crafting',
-  'smithing',
-  'mining',
-  'herblore',
-  'agility',
-  'thieving',
-  'slayer',
-  'farming',
-  'runecraft',
-  'hunter',
-  'construction',
-  'sailing'
-] as const;
-export type SkillName = (typeof SKILLS)[number];
+
 export const CLUES = [
   'all',
   'beginner',
@@ -71,80 +50,7 @@ export const GAMEMODES = [
   'freshStart'
 ] as const;
 export type Gamemode = (typeof GAMEMODES)[number];
-export const BOSSES = [
-  'abyssalSire',
-  'alchemicalHydra',
-  'amoxliatl',
-  'araxxor',
-  'artio',
-  'barrows',
-  'brutus',
-  'bryophyta',
-  'callisto',
-  'calvarion',
-  'cerberus',
-  'chambersOfXeric',
-  'chambersOfXericChallengeMode',
-  'chaosElemental',
-  'chaosFanatic',
-  'commanderZilyana',
-  'corporealBeast',
-  'crazyArchaeologist',
-  'dagannothPrime',
-  'dagannothRex',
-  'dagannothSupreme',
-  'derangedArchaeologist',
-  'doomOfMokhaiotl',
-  'dukeSucellus',
-  'generalGraardor',
-  'giantMole',
-  'grotesqueGuardians',
-  'hespori',
-  'kalphiteQueen',
-  'kingBlackDragon',
-  'kraken',
-  'kreeArra',
-  'krilTsutsaroth',
-  'lunarChests',
-  'madAngel',
-  'maggotKing',
-  'mimic',
-  'nex',
-  'nightmare',
-  'phosanisNightmare',
-  'obor',
-  'phantomMuspah',
-  'sarachnis',
-  'scorpia',
-  'scurrius',
-  'shellbaneGryphon',
-  'skotizo',
-  'solHeredit',
-  'spindel',
-  'tempoross',
-  'gauntlet',
-  'corruptedGauntlet',
-  'hueycoatl',
-  'leviathan',
-  'royalTitans',
-  'whisperer',
-  'theatreOfBlood',
-  'theatreOfBloodHardMode',
-  'thermonuclearSmokeDevil',
-  'tombsOfAmascut',
-  'tombsOfAmascutExpertMode',
-  'tzKalZuk',
-  'tzTokJad',
-  'vardorvis',
-  'venenatis',
-  'vetion',
-  'vorkath',
-  'wintertodt',
-  'yama',
-  'zalcano',
-  'zulrah'
-] as const;
-export type Boss = (typeof BOSSES)[number];
+
 export const ACTIVITIES = [
   'gridPoints',
   'leaguePoints',
@@ -169,116 +75,6 @@ export const ACTIVITIES = [
   ...BOSSES
 ] as const;
 export type ActivityName = (typeof ACTIVITIES)[number];
-
-export type FormattedBossNames = {
-  [key in Boss]: string;
-};
-
-export const FORMATTED_BOSS_NAMES: FormattedBossNames = {
-  abyssalSire: 'Abyssal Sire',
-  alchemicalHydra: 'Alchemical Hydra',
-  amoxliatl: 'Amoxliatl',
-  araxxor: 'Araxxor',
-  artio: 'Artio',
-  barrows: 'Barrows Chests',
-  brutus: 'Brutus',
-  bryophyta: 'Bryophyta',
-  callisto: 'Callisto',
-  calvarion: "Calvar'ion",
-  cerberus: 'Cerberus',
-  chambersOfXeric: 'Chambers of Xeric',
-  chambersOfXericChallengeMode: 'Chambers of Xeric: Challenge Mode',
-  chaosElemental: 'Chaos Elemental',
-  chaosFanatic: 'Chaos Fanatic',
-  commanderZilyana: 'Commander Zilyana',
-  corporealBeast: 'Corporeal Beast',
-  crazyArchaeologist: 'Crazy Archaeologist',
-  dagannothPrime: 'Dagannoth Prime',
-  dagannothRex: 'Dagannoth Rex',
-  dagannothSupreme: 'Dagannoth Supreme',
-  derangedArchaeologist: 'Deranged Archaeologist',
-  doomOfMokhaiotl: 'Doom of Mokhaiotl',
-  dukeSucellus: 'Duke Sucellus',
-  generalGraardor: 'General Graardor',
-  giantMole: 'Giant Mole',
-  grotesqueGuardians: 'Grotesque Guardians',
-  hespori: 'Hespori',
-  kalphiteQueen: 'Kalphite Queen',
-  kingBlackDragon: 'King Black Dragon',
-  kraken: 'Kraken',
-  kreeArra: "Kree'Arra",
-  krilTsutsaroth: "K'ril Tsutsaroth",
-  lunarChests: 'Lunar Chests',
-  madAngel: 'Mad Angel',
-  maggotKing: 'Maggot King',
-  mimic: 'Mimic',
-  nex: 'Nex',
-  nightmare: 'Nightmare',
-  phosanisNightmare: "Phosani's Nightmare",
-  obor: 'Obor',
-  phantomMuspah: 'Phantom Muspah',
-  sarachnis: 'Sarachnis',
-  scorpia: 'Scorpia',
-  scurrius: 'Scurrius',
-  shellbaneGryphon: 'Shellbane Gryphon',
-  skotizo: 'Skotizo',
-  solHeredit: 'Sol Heredit',
-  spindel: 'Spindel',
-  tempoross: 'Tempoross',
-  gauntlet: 'The Gauntlet',
-  corruptedGauntlet: 'The Corrupted Gauntlet',
-  hueycoatl: 'The Hueycoatl',
-  leviathan: 'The Leviathan',
-  royalTitans: 'The Royal Titans',
-  whisperer: 'The Whisperer',
-  theatreOfBlood: 'Theatre of Blood',
-  theatreOfBloodHardMode: 'Theatre of Blood: Hard Mode',
-  thermonuclearSmokeDevil: 'Thermonuclear Smoke Devil',
-  tombsOfAmascut: 'Tombs of Amascut',
-  tombsOfAmascutExpertMode: 'Tombs of Amascut: Expert Mode',
-  tzKalZuk: 'TzKal-Zuk',
-  tzTokJad: 'TzTok-Jad',
-  vardorvis: 'Vardorvis',
-  venenatis: 'Venenatis',
-  vetion: "Vet'ion",
-  vorkath: 'Vorkath',
-  wintertodt: 'Wintertodt',
-  yama: 'Yama',
-  zalcano: 'Zalcano',
-  zulrah: 'Zulrah'
-};
-
-export type FormattedSkillNames = {
-  [key in SkillName]: string;
-};
-
-export const FORMATTED_SKILL_NAMES: FormattedSkillNames = {
-  overall: 'Overall',
-  attack: 'Attack',
-  defence: 'Defence',
-  strength: 'Strength',
-  hitpoints: 'Hitpoints',
-  ranged: 'Ranged',
-  prayer: 'Prayer',
-  magic: 'Magic',
-  cooking: 'Cooking',
-  woodcutting: 'Woodcutting',
-  fletching: 'Fletching',
-  fishing: 'Fishing',
-  firemaking: 'Firemaking',
-  crafting: 'Crafting',
-  smithing: 'Smithing',
-  mining: 'Mining',
-  herblore: 'Herblore',
-  agility: 'Agility',
-  thieving: 'Thieving',
-  slayer: 'Slayer',
-  farming: 'Farming',
-  runecraft: 'Runecraft',
-  hunter: 'Hunter',
-  construction: 'Construction',
-  sailing: 'Sailing'
-};
 
 export type FormattedClueNames = {
   [key in ClueType]: string;
