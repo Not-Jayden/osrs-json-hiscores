@@ -63,10 +63,9 @@ If you type-check your dependencies (`"skipLibCheck": false`), your `tsconfig.js
   stats parser and leaked a raw `TypeError`.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
-- `numberFromElement` and `rsnFromElement` now take ultrahtml's `Node` rather than a DOM element. Both are
-  still exported, for use on markup you have parsed with `parse` from `ultrahtml`.
-- `WHITESPACE_REGEX` and `WHITESPACE_REGEX_STRING` are no longer exported. They only existed to build the
-  regex `getRSNFormat` used to have.
+- These are no longer exported, because only the package uses them: `numberFromElement`, `rsnFromElement`,
+  `WHITESPACE_REGEX`, `WHITESPACE_REGEX_STRING`, `INVALID_FORMAT_ERROR`, `PLAYER_NOT_FOUND_ERROR`,
+  `HISCORES_ERROR`.
 
 ## How to use
 
