@@ -17,9 +17,9 @@ import {
   InvalidRSNError,
   PlayerNotFoundError,
   HiScoresError,
-  httpGet,
   HttpError
 } from '../src/index.js';
+import { httpGet } from '../src/utils/helpers.js';
 
 const B0ATY_NAME = 'B0ATY';
 const B0ATY_FORMATTED_NAME = 'B0aty';

@@ -54,8 +54,8 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - `getRSNFormat` drops its third `mode` parameter. It reads the main hiscores, which include ironmen.
 - A non-2xx response throws `HttpError`, which carries `.status`.
 - A response body that isn't valid JSON throws `HiScoresError`.
-- `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
-  so `response.data` becomes `await response.json()`.
+- `httpGet` is no longer exported. It is the request layer behind the public functions, and the
+  `config` argument those functions take covers headers, signals and other request options.
 - `parseStats`, `InvalidFormatError` and `STATS_URL` are removed. The CSV endpoint carries the same
   values as the JSON endpoint `getStats` already uses, so a separate parser was redundant.
 - `getStatsURL` drops its third parameter and always builds the JSON endpoint URL.

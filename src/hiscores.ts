@@ -19,7 +19,6 @@ import {
   GAMEMODES,
   ACTIVITIES,
   getActivityPageURL,
-  httpGet,
   BOSSES,
   PlayerNotFoundError,
   HiScoresError,
@@ -41,6 +40,7 @@ import {
   ActivityName,
   HttpError
 } from './utils/index.js';
+import { httpGet } from './utils/helpers.js';
 
 /** Direct children only, so a nested table cannot add cells. */
 const rowCells = (row: Node) =>
