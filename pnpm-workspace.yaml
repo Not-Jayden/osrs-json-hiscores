@@ -1,5 +1,2 @@
-# Not a monorepo. pnpm reads its settings from this file, not package.json.
-# esbuild's install script links the platform binary. pnpm blocks build
-# scripts by default, so the install fails until you approve this one.
 allowBuilds:
   esbuild: true
