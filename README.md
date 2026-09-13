@@ -49,6 +49,8 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 ## Upgrading from v2
 
 - ESM only, with a Node.js 20.19.0 floor.
+- The package now declares `exports`, so deep imports such as `osrs-json-hiscores/lib/utils/helpers.js`
+  fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Import from the package root instead.
 - `GetStatsOptions.axiosConfigs` is renamed to `GetStatsOptions.requestConfigs`, and is now a standard
   `RequestInit` rather than an `AxiosRequestConfig`.
 - `getRSNFormat` drops its third `mode` parameter. It reads the main hiscores, which include ironmen.
@@ -56,8 +58,12 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - A response body that isn't valid JSON throws `HiScoresError`.
 - `httpGet` is no longer exported. It is the request layer behind the public functions, and the
   `config` argument those functions take covers headers, signals and other request options.
+- `BASE_URL`, `JSON_STATS_URL`, `SCORES_URL`, `GAMEMODE_URL` and the `GamemodeUrl` type are no longer
+  exported. They are the pieces the four URL builders concatenate.
 - `parseStats`, `InvalidFormatError` and `STATS_URL` are removed. The CSV endpoint carries the same
   values as the JSON endpoint `getStats` already uses, so a separate parser was redundant.
+- `INVALID_FORMAT_ERROR`, `PLAYER_NOT_FOUND_ERROR` and `HISCORES_ERROR` are no longer exported. The error
+  classes already carry those messages, so match on the class.
 - `getStatsURL` drops its third parameter and always builds the JSON endpoint URL.
 - `ActivityName` gains `'gridPoints'`, so exhaustive switches and `Record<ActivityName, X>` need a new
   case.
