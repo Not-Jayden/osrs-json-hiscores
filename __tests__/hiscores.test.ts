@@ -1,14 +1,6 @@
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import {
-  test,
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-  Mock
-} from 'vitest';
+import { test, describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 
 import {
   parseStats,
@@ -69,6 +61,10 @@ const nestedCellPage = `<table><tbody>
   <tr class="personal-hiscores__row"><td class="right">1</td><td class="left"><table><tr><td>nested</td></tr></table><a href="hiscorepersonal?user1=Nested Guy">Nested Guy</a></td><td class="right">4,242</td></tr>
 </tbody></table>`;
 
+const shortRowPage = `<table><tbody>
+  <tr class="personal-hiscores__row"><td class="right">1</td></tr>
+</tbody></table>`;
+
 const divergentTrophyPage = `<table><tbody>
   <tr class="personal-hiscores__row personal-hiscores__row--type-highlight">
     <td class="right"><a href="pre-sailing-overall?table=0&user=TROPHY CASE"><img src="trophy.png"/></a></td>
@@ -96,6 +92,9 @@ vi.stubGlobal(
     }
     if (getSkillPageURL('main', 'attack', 1) === url) {
       return Promise.resolve(textResponse(attackTopPage));
+    }
+    if (getSkillPageURL('main', 'attack', 2) === url) {
+      return Promise.resolve(textResponse(shortRowPage));
     }
     if (getActivityPageURL('main', 'allClues', 1) === url) {
       return Promise.resolve(textResponse(allCluesTopPage));
@@ -441,6 +440,13 @@ describe('Get name format', () => {
   it('throws an error for a hiscores issue', async () => {
     await expect(getRSNFormat(ERROR_NAME)).rejects.toThrow(HiScoresError);
   });
+});
+
+test('Degrade gracefully when a row has too few cells', async () => {
+  const data = await getSkillPage('attack', 'main', 2);
+  expect(data).toEqual([
+    { name: '', rank: -1, level: -1, xp: -1, dead: false }
+  ]);
 });
 
 test('Get attack top page', async () => {

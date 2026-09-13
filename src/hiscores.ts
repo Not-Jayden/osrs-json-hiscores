@@ -58,22 +58,22 @@ const hasClass = (el: ElementNode, cls: string) =>
   (el.attributes.class ?? '').split(/\s+/).includes(cls);
 
 const findAll = (
-  node: Node,
+  node: Node | undefined,
   pred: (el: ElementNode) => boolean
 ): ElementNode[] =>
-  ((node.children ?? []) as Node[])
+  ((node?.children ?? []) as Node[])
     .filter((n): n is ElementNode => n.type === ELEMENT_NODE)
     .flatMap((el) => [...(pred(el) ? [el] : []), ...findAll(el, pred)]);
 
-const find = (node: Node, pred: (el: ElementNode) => boolean) =>
+const find = (node: Node | undefined, pred: (el: ElementNode) => boolean) =>
   findAll(node, pred)[0] ?? null;
 
 const byTag = (name: string) => (el: ElementNode) => el.name === name;
 
-const textFromNode = (node: Node): string =>
-  node.type === TEXT_NODE
+const textFromNode = (node: Node | undefined): string =>
+  node?.type === TEXT_NODE
     ? String(node.value)
-    : ((node.children ?? []) as Node[]).map(textFromNode).join('');
+    : ((node?.children ?? []) as Node[]).map(textFromNode).join('');
 
 /**
  * Extracts a number from an OSRS hiscores table cell element.
