@@ -9,8 +9,8 @@
  *
  * ponytail: only skills and bosses are derived. The fixed activity block (points,
  * Bounty Hunter, clue scrolls, minigames) has no key<->display rule, so it stays
- * hand-authored in constants.ts; a new entry there fails the run and is added by
- * hand.
+ * hand-authored in constants.ts; a new entry there is reported with the exact lines
+ * to paste rather than generated.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +54,37 @@ export const keygen = (name) =>
 
 export const keyOf = (name) =>
   Object.hasOwn(KEY_OVERRIDES, name) ? KEY_OVERRIDES[name] : keygen(name);
+
+/** Fixed-block names the package uses but deliberately does not expose. */
+const UNMODELLED = new Set(['Grid Points']);
+
+/** Every display name the hand-authored fixed block already accounts for. */
+const knownFixedNames = (lib) =>
+  new Set([
+    ...Object.values(lib.FORMATTED_CLUE_NAMES),
+    ...Object.values(lib.FORMATTED_BH_NAMES),
+    // The scalar FORMATTED_* strings, picked up by shape so a new one needs no edit here.
+    ...Object.entries(lib)
+      .filter(
+        ([name, value]) =>
+          name.startsWith('FORMATTED_') && typeof value === 'string'
+      )
+      .map(([, value]) => value),
+    ...UNMODELLED
+  ]);
+
+/**
+ * Fixed-block entries the endpoint lists and the package cannot key. Position is
+ * part of the answer: ACTIVITIES.indexOf is the hiscores `table=` parameter, so an
+ * entry inserted here shifts the table number of every boss after it.
+ */
+export const manualEntries = (liveFixedNames, lib) => {
+  const known = knownFixedNames(lib);
+  return liveFixedNames
+    .map((name, position) => ({ name, position }))
+    .filter(({ name }) => !known.has(name))
+    .map((entry) => ({ ...entry, key: keyOf(entry.name) }));
+};
 
 const renderSkills = (
   entries
@@ -134,19 +165,27 @@ const fetchLiveContent = async () => {
   }
 
   // Everything before the first known boss is the hand-authored block. Its keys
-  // follow no rule, so a new entry there cannot be generated — but it must not be
-  // missed either, so count it and fail the run.
-  const preBoss = a.activities.slice(0, firstBoss - a.skills.length);
+  // follow no rule, so a new entry there cannot be generated. Report it with the
+  // lines to paste, but do not fail: the derived files are still worth a PR.
+  const liveFixed = a.activities.slice(0, firstBoss - a.skills.length);
   const shippedPreBoss = lib.ACTIVITIES.length - shippedBosses.length;
-  if (preBoss.length !== shippedPreBoss) {
-    throw new Error(
-      `hiscores lists ${preBoss.length} activities before ${shippedBosses[0][1]}, the package ` +
-        `ships ${shippedPreBoss} — add the new one(s) to ACTIVITIES and their FORMATTED_* names by hand`
+  let manual = [];
+  if (liveFixed.length !== shippedPreBoss) {
+    manual = manualEntries(
+      liveFixed.map(({ name }) => name),
+      lib
     );
+    if (!manual.length) {
+      throw new Error(
+        `hiscores lists ${liveFixed.length} activities before ${shippedBosses[0][1]}, the package ` +
+          `ships ${shippedPreBoss}, and none of them is new — removing content is a human decision`
+      );
+    }
   }
 
   return {
     lib,
+    manual,
     skills: a.skills.map(({ name }) => [keyOf(name), name]),
     bosses: a.activities
       .slice(firstBoss - a.skills.length)
@@ -196,7 +235,7 @@ const added = (entries, shipped) =>
  * @returns Added names, and whether the working tree differs from them.
  */
 export async function regen({ check = false } = {}) {
-  const { lib, skills, bosses } = await fetchLiveContent();
+  const { lib, skills, bosses, manual } = await fetchLiveContent();
   validate('skills', skills, lib.FORMATTED_SKILL_NAMES);
   validate('bosses', bosses, lib.FORMATTED_BOSS_NAMES);
 
@@ -235,20 +274,31 @@ export async function regen({ check = false } = {}) {
     console.log(`updated ${file}`);
   }
 
-  return { addedNames, notes, stale };
+  return { addedNames, notes, manual, stale };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const check = process.argv.includes('--check');
-  const { addedNames, notes, stale } = await regen({ check });
+  const { addedNames, notes, manual, stale } = await regen({ check });
   if (addedNames.length) {
     console.log(`new hiscores content: ${addedNames.join(', ')}`);
   }
   notes.forEach((note) => console.log(`note: ${note}`));
-  if (!stale) {
+  manual.forEach(({ name, key, position }) =>
+    console.log(
+      `needs a hand-written entry: ${name} -> ${key}, position ${position + 1} of ACTIVITIES`
+    )
+  );
+  if (stale || manual.length) {
+    if (check) {
+      console.error(
+        stale
+          ? 'generated content is stale — run without --check to update'
+          : 'hand-written entries are pending — run without --check to see them'
+      );
+      process.exit(1);
+    }
+  } else {
     console.log('generated content is up to date');
-  } else if (check) {
-    console.error('generated content is stale — run without --check to update');
-    process.exit(1);
   }
 }

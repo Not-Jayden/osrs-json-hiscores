@@ -5,10 +5,12 @@ import { expect, test } from 'vitest';
 import {
   keygen,
   keyOf,
+  manualEntries,
   renderBosses,
   renderBossesTable,
   validate
 } from '../scripts/regen-content.mjs';
+import { prBody } from '../scripts/codegen-content-pr.mjs';
 import {
   BOSSES,
   FORMATTED_BOSS_NAMES,
@@ -70,6 +72,41 @@ test('rendered order is the endpoint order, never sorted', () => {
 
   expect(positions.every((at) => at > -1)).toBe(true);
   expect(positions).toStrictEqual([...positions].sort((a, b) => a - b));
+});
+
+test('a new fixed activity is reported with a key and its position', () => {
+  // Grid Points has no constant in the package, so it must not be reported as new
+  // on every single run.
+  const fakeLib = {
+    FORMATTED_CLUE_NAMES: { all: 'Clue Scrolls (all)' },
+    FORMATTED_BH_NAMES: { hunter: 'Bounty Hunter (Legacy) - Hunter' },
+    FORMATTED_LMS: 'LMS - Rank'
+  };
+  const live = [
+    'Grid Points',
+    'LMS - Rank',
+    'Clue Scrolls (all)',
+    'Plague Rift',
+    'Bounty Hunter (Legacy) - Hunter'
+  ];
+
+  expect(manualEntries(live, fakeLib)).toStrictEqual([
+    { name: 'Plague Rift', key: 'plagueRift', position: 3 }
+  ]);
+});
+
+test('the PR body carries the lines to paste', () => {
+  const body = prBody(
+    'feat: add Zulrah',
+    [],
+    [{ name: 'Plague Rift', key: 'plagueRift', position: 3 }]
+  );
+
+  expect(body).toContain('## Hand-written entries needed');
+  expect(body).toContain("'plagueRift',");
+  expect(body).toContain("export const FORMATTED_PLAGUE_RIFT = 'Plague Rift';");
+  expect(body).toContain('entry 4 of `ACTIVITIES`');
+  expect(prBody('feat: add Zulrah', [])).not.toContain('Hand-written');
 });
 
 test('regeneration refuses content it cannot reproduce', () => {

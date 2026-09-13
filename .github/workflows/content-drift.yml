@@ -1,8 +1,9 @@
 name: Content drift
 
 on:
-  # Daily: regenerate from the endpoint and open a draft PR when it has content we
-  # do not ship. A run that finds nothing to do exits green and opens nothing.
+  # Daily: regenerate from the endpoint. Files a draft PR when the package is behind,
+  # or an issue when the only change needs a hand-written key. Exits green when the
+  # endpoint has nothing new.
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
@@ -15,6 +16,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # The issue fallback, for when a hand-written entry is all that changed.
+  issues: write
 
 concurrency:
   group: content-drift
