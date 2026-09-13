@@ -34,7 +34,7 @@ jobs:
       - if: github.event_name == 'schedule'
         run: node scripts/regen-content.mjs --check
 
-      - if: github.event_name != 'schedule'
+      - if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "Not-Jayden"
           git config user.email "16816250+Not-Jayden@users.noreply.github.com"
