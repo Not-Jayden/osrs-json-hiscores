@@ -51,12 +51,9 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - ESM only, with a Node.js 20.19.0 floor.
 - `GetStatsOptions.axiosConfigs` is renamed to `GetStatsOptions.requestConfigs`, and is now a standard
   `RequestInit` rather than an `AxiosRequestConfig`.
+- `getRSNFormat` drops its third `mode` parameter. It reads the main hiscores, which include ironmen.
 - A non-2xx response throws `HttpError`, which carries `.status`.
 - A response body that isn't valid JSON throws `HiScoresError`.
-- `getRSNFormat` throws `PlayerNotFoundError` for a missing player, instead of
-  always `HiScoresError`.
-- `Player` only carries the four standard gamemode keys (`main`, `ironman`,
-  `hardcore`, `ultimate`), not every gamemode.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
 
