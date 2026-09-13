@@ -9,7 +9,7 @@
 
 ## What it does
 
-The official hiscores API for Old School RuneScape (OSRS) can return CSV or a simple JSON array.
+The official hiscores API for Old School RuneScape (OSRS) returns a simple JSON array.
 This wrapper converts the hiscores data into a more usable JSON object and provides extra information about the given player. By comparing player info it infers the player's game mode, as well as any previous modes (de-ultimated, de-ironed and/or died as a hardcore ironman).
 
 Additional functions are provided that screen-scrape the OSRS leaderboards and return a list of players as json. Also simple utility functions are provided to fetch the raw responses from Jagex's APIs, if desired.
@@ -56,6 +56,8 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - A response body that isn't valid JSON throws `HiScoresError`.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
+- `parseStats` and `InvalidFormatError` are removed. The CSV endpoint carries the same values as the
+  JSON endpoint `getStats` already uses, so a separate parser was redundant.
 
 ## How to use
 

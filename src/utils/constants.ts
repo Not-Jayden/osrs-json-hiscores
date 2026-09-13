@@ -147,6 +147,7 @@ export const BOSSES = [
 ] as const;
 export type Boss = (typeof BOSSES)[number];
 export const ACTIVITIES = [
+  'gridPoints',
   'leaguePoints',
   'deadmanPoints',
   'hunterBHV2',
@@ -314,15 +315,8 @@ export const FORMATTED_RIFTS_CLOSED = 'Rifts closed';
 export const FORMATTED_COLOSSEUM_GLORY = 'Colosseum Glory';
 export const FORMATTED_COLLECTIONS_LOGGED = 'Collections Logged';
 
-const INVALID_FORMAT_ERROR = 'Invalid hiscores format';
 const PLAYER_NOT_FOUND_ERROR = 'Player not found';
 const HISCORES_ERROR = 'HiScores not responding';
-
-export class InvalidFormatError extends Error {
-  constructor() {
-    super(INVALID_FORMAT_ERROR);
-  }
-}
 
 export class InvalidRSNError extends Error {}
 

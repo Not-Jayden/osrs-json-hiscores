@@ -2,14 +2,10 @@ import { ELEMENT_NODE, ElementNode, Node, TEXT_NODE, parse } from 'ultrahtml';
 import {
   Player,
   Activity,
-  Skill,
   Stats,
   Skills,
-  BH,
-  Clues,
   PlayerSkillRow,
   PlayerActivityRow,
-  Bosses,
   GetStatsOptions,
   HiscoresResponse
 } from './types.js';
@@ -25,7 +21,6 @@ import {
   getActivityPageURL,
   httpGet,
   BOSSES,
-  InvalidFormatError,
   PlayerNotFoundError,
   HiScoresError,
   validateRSN,
@@ -227,100 +222,6 @@ export function parseJsonStats(json: HiscoresResponse): Stats {
   const riftsClosed = getActivity(FORMATTED_RIFTS_CLOSED);
   const colosseumGlory = getActivity(FORMATTED_COLOSSEUM_GLORY);
   const collectionsLogged = getActivity(FORMATTED_COLLECTIONS_LOGGED);
-
-  const stats: Stats = {
-    skills,
-    leaguePoints,
-    deadmanPoints,
-    bountyHunter,
-    lastManStanding,
-    pvpArena,
-    soulWarsZeal,
-    riftsClosed,
-    colosseumGlory,
-    collectionsLogged,
-    clues,
-    bosses
-  };
-
-  return stats;
-}
-
-/**
- * Parses CSV string of raw stats and returns a stats object.
- *
- * @param csv Raw CSV from the official OSRS API.
- * @returns Parsed stats object.
- */
-export function parseStats(csv: string): Stats {
-  const splitCSV = csv
-    .split('\n')
-    .filter((entry) => !!entry)
-    .map((stat) => stat.split(','));
-
-  if (splitCSV.length !== SKILLS.length + ACTIVITIES.length) {
-    throw new InvalidFormatError();
-  }
-
-  const skillObjects: Skill[] = splitCSV
-    .filter((stat) => stat.length === 3)
-    .map((stat) => {
-      const [rank, level, xp] = stat;
-      const skill: Skill = {
-        rank: parseInt(rank, 10),
-        level: parseInt(level, 10),
-        xp: parseInt(xp, 10)
-      };
-      return skill;
-    });
-
-  const activityObjects: Activity[] = splitCSV
-    .filter((stat) => stat.length === 2)
-    .map((stat) => {
-      const [rank, score] = stat;
-      const activity: Activity = {
-        rank: parseInt(rank, 10),
-        score: parseInt(score, 10)
-      };
-      return activity;
-    });
-
-  const [leaguePoints, deadmanPoints] = activityObjects.splice(0, 2);
-  const bhObjects = activityObjects.splice(0, BH_MODES.length);
-  const clueObjects = activityObjects.splice(0, CLUES.length);
-  const [
-    lastManStanding,
-    pvpArena,
-    soulWarsZeal,
-    riftsClosed,
-    colosseumGlory,
-    collectionsLogged
-  ] = activityObjects.splice(0, 6);
-  const bossObjects = activityObjects.splice(0, BOSSES.length);
-
-  const skills: Skills = skillObjects.reduce<Skills>((prev, curr, index) => {
-    const newSkills = { ...prev };
-    newSkills[SKILLS[index]] = curr;
-    return newSkills;
-  }, {} as Skills);
-
-  const bountyHunter: BH = bhObjects.reduce<BH>((prev, curr, index) => {
-    const newBH = { ...prev };
-    newBH[BH_MODES[index]] = curr;
-    return newBH;
-  }, {} as BH);
-
-  const clues: Clues = clueObjects.reduce<Clues>((prev, curr, index) => {
-    const newClues = { ...prev };
-    newClues[CLUES[index]] = curr;
-    return newClues;
-  }, {} as Clues);
-
-  const bosses: Bosses = bossObjects.reduce<Bosses>((prev, curr, index) => {
-    const newBosses = { ...prev };
-    newBosses[BOSSES[index]] = curr;
-    return newBosses;
-  }, {} as Bosses);
 
   const stats: Stats = {
     skills,
