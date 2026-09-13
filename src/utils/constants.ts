@@ -1,3 +1,4 @@
+import { FIXED_ACTIVITIES } from './generated/activities.js';
 import { BOSSES } from './generated/bosses.js';
 
 // Endpoint-derived content lives in ./generated — regenerate with scripts/regen-content.mjs.
@@ -51,29 +52,7 @@ export const GAMEMODES = [
 ] as const;
 export type Gamemode = (typeof GAMEMODES)[number];
 
-export const ACTIVITIES = [
-  'gridPoints',
-  'leaguePoints',
-  'deadmanPoints',
-  'hunterBHV2',
-  'rogueBHV2',
-  'hunterBH',
-  'rogueBH',
-  'allClues',
-  'beginnerClues',
-  'easyClues',
-  'mediumClues',
-  'hardClues',
-  'eliteClues',
-  'masterClues',
-  'lastManStanding',
-  'pvpArena',
-  'soulWarsZeal',
-  'riftsClosed',
-  'colosseumGlory',
-  'collectionsLogged',
-  ...BOSSES
-] as const;
+export const ACTIVITIES = [...FIXED_ACTIVITIES, ...BOSSES] as const;
 export type ActivityName = (typeof ACTIVITIES)[number];
 
 export type FormattedClueNames = {

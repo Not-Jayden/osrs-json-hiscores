@@ -5,14 +5,14 @@ import { expect, test } from 'vitest';
 import {
   keygen,
   keyOf,
-  manualEntries,
-  misalignedActivities,
   renderBosses,
   renderBossesTable,
   validate
 } from '../scripts/regen-content.mjs';
-import { issueBody, prBody } from '../scripts/codegen-content-pr.mjs';
+import { prBody } from '../scripts/codegen-content-pr.mjs';
+import { FIXED_ACTIVITIES } from '../src/utils/generated/activities.js';
 import {
+  ACTIVITIES,
   BOSSES,
   FORMATTED_BOSS_NAMES,
   FORMATTED_SKILL_NAMES,
@@ -75,77 +75,61 @@ test('rendered order is the endpoint order, never sorted', () => {
   expect(positions).toStrictEqual([...positions].sort((a, b) => a - b));
 });
 
-test('a new fixed activity is reported with a key and its position', () => {
-  // Grid Points has no constant in the package, so it must not be reported as new
-  // on every single run.
-  const fakeLib = {
-    FORMATTED_CLUE_NAMES: { all: 'Clue Scrolls (all)' },
-    FORMATTED_BH_NAMES: { hunter: 'Bounty Hunter (Legacy) - Hunter' },
-    FORMATTED_LMS: 'LMS - Rank'
+test('the generated fixed list is the head of ACTIVITIES, in hiscores order', () => {
+  // ACTIVITIES is [...FIXED_ACTIVITIES, ...BOSSES], and getActivityPageURL passes
+  // ACTIVITIES.indexOf(boss) as the hiscores table= number: the fixed order is not
+  // cosmetic.
+  expect(ACTIVITIES.slice(0, FIXED_ACTIVITIES.length)).toStrictEqual([
+    ...FIXED_ACTIVITIES
+  ]);
+  expect(FIXED_ACTIVITIES.at(-1)).toBe('collectionsLogged');
+  expect(FIXED_ACTIVITIES[0]).toBe('gridPoints');
+});
+
+test('every shipped fixed key is reproduced by the rule or the override table', () => {
+  // The twenty legacy keys: thirteen from KEY_OVERRIDES, seven from the rule.
+  const byRule = {
+    'Grid Points': 'gridPoints',
+    'League Points': 'leaguePoints',
+    'Deadman Points': 'deadmanPoints',
+    'Soul Wars Zeal': 'soulWarsZeal',
+    'Rifts closed': 'riftsClosed',
+    'Colosseum Glory': 'colosseumGlory',
+    'Collections Logged': 'collectionsLogged'
   };
-  const live = [
-    'Grid Points',
-    'LMS - Rank',
-    'Clue Scrolls (all)',
-    'Plague Rift',
-    'Bounty Hunter (Legacy) - Hunter'
-  ];
+  const byTable = {
+    'Bounty Hunter - Hunter': 'hunterBHV2',
+    'Bounty Hunter - Rogue': 'rogueBHV2',
+    'Bounty Hunter (Legacy) - Hunter': 'hunterBH',
+    'Bounty Hunter (Legacy) - Rogue': 'rogueBH',
+    'Clue Scrolls (all)': 'allClues',
+    'Clue Scrolls (beginner)': 'beginnerClues',
+    'Clue Scrolls (easy)': 'easyClues',
+    'Clue Scrolls (medium)': 'mediumClues',
+    'Clue Scrolls (hard)': 'hardClues',
+    'Clue Scrolls (elite)': 'eliteClues',
+    'Clue Scrolls (master)': 'masterClues',
+    'LMS - Rank': 'lastManStanding',
+    'PvP Arena - Rank': 'pvpArena'
+  };
 
-  expect(manualEntries(live, fakeLib)).toStrictEqual([
-    { name: 'Plague Rift', key: 'plagueRift', position: 3 }
-  ]);
-});
-
-test('the PR body carries the lines to paste', () => {
-  const body = prBody(
-    'feat: add Zulrah',
-    [],
-    [{ name: 'Plague Rift', key: 'plagueRift', position: 3 }]
+  Object.entries(byRule).forEach(([name, key]) =>
+    expect(keygen(name)).toBe(key)
   );
-
-  expect(body).toContain('## Hand-written entries needed');
-  expect(body).toContain("'plagueRift',");
-  expect(body).toContain("export const FORMATTED_PLAGUE_RIFT = 'Plague Rift';");
-  expect(body).toContain('entry 4 of `ACTIVITIES`');
-  expect(prBody('feat: add Zulrah', [])).not.toContain('Hand-written');
-
-  // The issue is the artifact when a hand-written entry is the only finding.
-  const issue = issueBody([
-    { name: 'Plague Rift', key: 'plagueRift', position: 3 }
-  ]);
-  expect(issue).toContain('nothing to open a PR for');
-  expect(issue).toContain(
-    "export const FORMATTED_PLAGUE_RIFT = 'Plague Rift';"
+  Object.entries(byTable).forEach(([name, key]) =>
+    expect(keyOf(name)).toBe(key)
+  );
+  expect(Object.keys(byRule).length + Object.keys(byTable).length).toBe(
+    FIXED_ACTIVITIES.length
   );
 });
 
-test('a key at the wrong table number is caught', () => {
-  // `id` is the hiscores `table=` number, so a key the package puts at another
-  // index would send that request to somebody else's table.
-  const ordered = ['gridPoints', 'leaguePoints', 'plagueRift', 'lMSRank'];
+test('the PR body carries the notes and nothing else', () => {
+  const body = prBody('feat: add Zulrah', ['a note']);
 
-  expect(
-    misalignedActivities(
-      [
-        { id: 0, name: 'Grid Points' },
-        { id: 1, name: 'League Points' },
-        { id: 2, name: 'Plague Rift' },
-        { id: 3, name: 'LMS - Rank' }
-      ],
-      ordered
-    )
-  ).toStrictEqual([]);
-
-  // Hiscores call it table 3, the package puts it at 2: every request after it reads
-  // the wrong table.
-  expect(
-    misalignedActivities([{ id: 3, name: 'Plague Rift' }], ordered)
-  ).toStrictEqual([{ id: 3, name: 'Plague Rift' }]);
-
-  // A name no rule can key is not judged at all.
-  expect(
-    misalignedActivities([{ id: 9, name: 'Mystery Thing' }], ordered)
-  ).toStrictEqual([]);
+  expect(body).toContain('Verify before merging:\n- a note');
+  expect(body).toContain('- [ ] Merge as a minor release');
+  expect(body).not.toContain('Hand-written');
 });
 
 test('regeneration refuses content it cannot reproduce', () => {
@@ -155,10 +139,17 @@ test('regeneration refuses content it cannot reproduce', () => {
     /dropped/
   );
   expect(() => validate('bosses', [...one, ...one], {})).toThrow(/duplicate/);
-  // A boss whose key collides with a fixed activity: ACTIVITIES would carry it twice
-  // and indexOf would resolve to the fixed entry ahead of it.
+  // A boss whose key collides with a fixed activity ships ACTIVITIES with the key
+  // twice, and indexOf then resolves to the fixed entry ahead of the boss.
   expect(() =>
-    validate('bosses', [['riftsClosed', 'Rifts Closed']], {}, ['riftsClosed'])
+    validate(
+      'activities',
+      [
+        ['riftsClosed', 'Rifts Closed'],
+        ['riftsClosed', 'Rifts Closed']
+      ],
+      {}
+    )
   ).toThrow(/duplicate/);
   expect(() =>
     validate('bosses', [['tzKalZuk', 'TzKal-Zuk']], {
