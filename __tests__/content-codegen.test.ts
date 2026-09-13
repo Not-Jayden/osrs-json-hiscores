@@ -6,6 +6,7 @@ import {
   keygen,
   keyOf,
   manualEntries,
+  misalignedActivities,
   renderBosses,
   renderBossesTable,
   validate
@@ -118,6 +119,35 @@ test('the PR body carries the lines to paste', () => {
   );
 });
 
+test('a key at the wrong table number is caught', () => {
+  // `id` is the hiscores `table=` number, so a key the package puts at another
+  // index would send that request to somebody else's table.
+  const ordered = ['gridPoints', 'leaguePoints', 'plagueRift', 'lMSRank'];
+
+  expect(
+    misalignedActivities(
+      [
+        { id: 0, name: 'Grid Points' },
+        { id: 1, name: 'League Points' },
+        { id: 2, name: 'Plague Rift' },
+        { id: 3, name: 'LMS - Rank' }
+      ],
+      ordered
+    )
+  ).toStrictEqual([]);
+
+  // Hiscores call it table 3, the package puts it at 2: every request after it reads
+  // the wrong table.
+  expect(
+    misalignedActivities([{ id: 3, name: 'Plague Rift' }], ordered)
+  ).toStrictEqual([{ id: 3, name: 'Plague Rift' }]);
+
+  // A name no rule can key is not judged at all.
+  expect(
+    misalignedActivities([{ id: 9, name: 'Mystery Thing' }], ordered)
+  ).toStrictEqual([]);
+});
+
 test('regeneration refuses content it cannot reproduce', () => {
   const one = [['araxxor', 'Araxxor']] as [string, string][];
 
@@ -125,6 +155,11 @@ test('regeneration refuses content it cannot reproduce', () => {
     /dropped/
   );
   expect(() => validate('bosses', [...one, ...one], {})).toThrow(/duplicate/);
+  // A boss whose key collides with a fixed activity: ACTIVITIES would carry it twice
+  // and indexOf would resolve to the fixed entry ahead of it.
+  expect(() =>
+    validate('bosses', [['riftsClosed', 'Rifts Closed']], {}, ['riftsClosed'])
+  ).toThrow(/duplicate/);
   expect(() =>
     validate('bosses', [['tzKalZuk', 'TzKal-Zuk']], {
       tzkalzuk: 'TzKal-Zuk'

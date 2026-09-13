@@ -35,6 +35,17 @@ const renderMap = (entries) =>
   entries.map(([key, name]) => `  ${key}: ${JSON.stringify(name)},`).join('\n');
 
 /**
+ * Live activities whose hiscores table number disagrees with where the package
+ * puts them. `id` is the `table=` number, so a mismatch means a request for that
+ * entry would read somebody else's table.
+ */
+export const misalignedActivities = (activities, orderedKeys) =>
+  activities.filter(({ id, name }) => {
+    const at = orderedKeys.indexOf(keyOf(name));
+    return at !== -1 && at !== id;
+  });
+
+/**
  * Turns a hiscores display name into its key: strip apostrophes, drop a leading
  * article, then camelCase on word boundaries while keeping capitals inside a word
  * (TzKal-Zuk -> tzKalZuk, Phosani's Nightmare -> phosanisNightmare).
@@ -168,7 +179,11 @@ const fetchLiveContent = async () => {
   // follow no rule, so a new entry there cannot be generated. Report it with the
   // lines to paste, but do not fail: the derived files are still worth a PR.
   const liveFixed = a.activities.slice(0, firstBoss - a.skills.length);
-  const shippedPreBoss = lib.ACTIVITIES.length - shippedBosses.length;
+  const fixedKeys = lib.ACTIVITIES.slice(
+    0,
+    lib.ACTIVITIES.length - shippedBosses.length
+  );
+  const shippedPreBoss = fixedKeys.length;
   let manual = [];
   if (liveFixed.length !== shippedPreBoss) {
     manual = manualEntries(
@@ -183,18 +198,38 @@ const fetchLiveContent = async () => {
     }
   }
 
+  const liveBosses = a.activities
+    .slice(firstBoss - a.skills.length)
+    .map(({ name }) => [keyOf(name), name]);
+
+  // A pending hand-written entry shifts every index after it by design, so the
+  // numbering can only be checked once the fixed block is whole again.
+  if (!manual.length) {
+    const regenerated = [...fixedKeys, ...liveBosses.map(([key]) => key)];
+    const misaligned = misalignedActivities(a.activities, regenerated);
+    if (misaligned.length) {
+      throw new Error(
+        `hiscores table numbers disagree with the package for ${misaligned
+          .map(
+            ({ id, name }) =>
+              `${name} (table ${id}, the package puts it at ${regenerated.indexOf(keyOf(name))})`
+          )
+          .join(', ')} — reorder ACTIVITIES to match the hiscores`
+      );
+    }
+  }
+
   return {
     lib,
+    fixedKeys,
     manual,
-    skills: a.skills.map(({ name }) => [keyOf(name), name]),
-    bosses: a.activities
-      .slice(firstBoss - a.skills.length)
-      .map(({ name }) => [keyOf(name), name])
+    bosses: liveBosses,
+    skills: a.skills.map(({ name }) => [keyOf(name), name])
   };
 };
 
 /** Fails loudly when the live hiscores and the shipped constants disagree. */
-export const validate = (label, entries, shipped) => {
+export const validate = (label, entries, shipped, taken = []) => {
   const stubborn = Object.entries(shipped).filter(
     ([key, display]) => keyOf(display) !== key
   );
@@ -217,7 +252,7 @@ export const validate = (label, entries, shipped) => {
     );
   }
 
-  const keys = entries.map(([key]) => key);
+  const keys = [...taken, ...entries.map(([key]) => key)];
   const duplicates = keys.filter((key, i) => keys.indexOf(key) !== i);
   if (duplicates.length) {
     throw new Error(`${label}: duplicate keys ${duplicates.join(', ')}`);
@@ -235,9 +270,9 @@ const added = (entries, shipped) =>
  * @returns Added names, and whether the working tree differs from them.
  */
 export async function regen({ check = false } = {}) {
-  const { lib, skills, bosses, manual } = await fetchLiveContent();
+  const { lib, skills, bosses, manual, fixedKeys } = await fetchLiveContent();
   validate('skills', skills, lib.FORMATTED_SKILL_NAMES);
-  validate('bosses', bosses, lib.FORMATTED_BOSS_NAMES);
+  validate('bosses', bosses, lib.FORMATTED_BOSS_NAMES, fixedKeys);
 
   const addedNames = [
     ...added(skills, lib.FORMATTED_SKILL_NAMES),
@@ -253,6 +288,19 @@ export async function regen({ check = false } = {}) {
       `"${lastBoss[1]}" was appended to the end of the hiscores list — confirm it is a boss and not a minigame`
     );
   }
+
+  // The key stayed put but the name the user sees changed: a public display name.
+  const shippedNames = {
+    ...lib.FORMATTED_SKILL_NAMES,
+    ...lib.FORMATTED_BOSS_NAMES
+  };
+  [...skills, ...bosses].forEach(([key, name]) => {
+    if (shippedNames[key] && shippedNames[key] !== name) {
+      notes.push(
+        `"${shippedNames[key]}" is now "${name}" in the hiscores — a public display name changed`
+      );
+    }
+  });
 
   const targets = [
     ['src/utils/generated/skills.ts', renderSkills(skills)],

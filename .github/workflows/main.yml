@@ -24,6 +24,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec eslint "{src,__tests__}/**/*.ts"
-      - run: pnpm exec prettier --check "{src,__tests__}/**/*.ts"
+      - run: pnpm exec prettier --check "{src,__tests__}/**/*.ts" README.md
       - run: pnpm build
       - run: pnpm test

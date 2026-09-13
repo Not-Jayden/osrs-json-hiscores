@@ -87,6 +87,22 @@ export async function codegen({ dry = false } = {}) {
       console.log(issueBody(manual));
       return;
     }
+    const openTitles = JSON.parse(
+      read('gh', [
+        'issue',
+        'list',
+        '--state',
+        'open',
+        '--limit',
+        '200',
+        '--json',
+        'title'
+      ])
+    ).map(({ title: existing }) => existing);
+    if (openTitles.includes(title)) {
+      console.log(`issue already open: ${title}`);
+      return;
+    }
     run('gh', [
       'issue',
       'create',
