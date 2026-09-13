@@ -15,6 +15,9 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: content-drift
+
 jobs:
   content:
     runs-on: ubuntu-latest

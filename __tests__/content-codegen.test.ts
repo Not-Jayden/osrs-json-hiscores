@@ -1,11 +1,13 @@
+/* eslint-disable import/extensions -- the scripts are .mjs, imported from TS */
+import prettier from 'prettier';
 import { expect, test } from 'vitest';
 
-/* eslint-disable import/extensions -- the scripts are .mjs, imported from TS */
 import {
   keygen,
   keyOf,
   renderBosses,
-  renderBossesTable
+  renderBossesTable,
+  validate
 } from '../scripts/regen-content.mjs';
 import {
   BOSSES,
@@ -14,11 +16,15 @@ import {
   SKILLS
 } from '../src/index.js';
 
+const shippedBosses = BOSSES.map(
+  (key) => [key, FORMATTED_BOSS_NAMES[key]] as [string, string]
+);
+
 test('keygen reproduces every shipped key', () => {
   expect(SKILLS.map((key) => keyOf(FORMATTED_SKILL_NAMES[key]))).toStrictEqual([
     ...SKILLS
   ]);
-  expect(BOSSES.map((key) => keyOf(FORMATTED_BOSS_NAMES[key]))).toStrictEqual([
+  expect(shippedBosses.map(([, name]) => keyOf(name))).toStrictEqual([
     ...BOSSES
   ]);
 });
@@ -33,16 +39,33 @@ test('keygen follows the house rules', () => {
   expect(keyOf('Barrows Chests')).toBe('barrows');
 });
 
-test('rendering the shipped content reproduces the keys and names', () => {
-  const entries = BOSSES.map((key) => [key, FORMATTED_BOSS_NAMES[key]]);
+test('prettier leaves the rendered content in the shipped style', async () => {
+  const entries: [string, string][] = [
+    ['araxxor', 'Araxxor'],
+    ['calvarion', "Calvar'ion"]
+  ];
+  const formatted = await prettier.format(renderBosses(entries), {
+    ...(await prettier.resolveConfig('src/utils/generated/bosses.ts')),
+    filepath: 'src/utils/generated/bosses.ts'
+  });
 
-  const rendered = renderBosses(entries);
-  expect(rendered.match(/^ {2}'\w+',$/gm)).toStrictEqual(
-    BOSSES.map((key) => `  '${key}',`)
+  expect(formatted).toContain("araxxor: 'Araxxor',");
+  expect(formatted).toContain(`calvarion: "Calvar'ion"`);
+  expect(renderBossesTable(entries).split('\n')).toHaveLength(
+    entries.length + 2
   );
-  expect(rendered).toContain(`calvarion: "Calvar'ion",`);
+});
 
-  const table = renderBossesTable(entries).split('\n');
-  expect(table).toHaveLength(BOSSES.length + 2);
-  expect(table[2]).toBe('| Abyssal Sire | `abyssalSire` |');
+test('regeneration refuses content it cannot reproduce', () => {
+  const one = [['araxxor', 'Araxxor']] as [string, string][];
+
+  expect(() => validate('bosses', one, { brutus: 'Brutus' })).toThrow(
+    /dropped/
+  );
+  expect(() => validate('bosses', [...one, ...one], {})).toThrow(/duplicate/);
+  expect(() =>
+    validate('bosses', [['tzKalZuk', 'TzKal-Zuk']], {
+      tzkalzuk: 'TzKal-Zuk'
+    })
+  ).toThrow(/no longer reproduces/);
 });
