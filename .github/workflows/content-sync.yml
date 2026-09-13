@@ -1,4 +1,4 @@
-name: Content drift
+name: Content sync
 
 on:
   # Daily: regenerate from the endpoint and file a draft PR when the package is behind.
@@ -17,7 +17,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: content-drift
+  group: content-sync
 
 jobs:
   content:

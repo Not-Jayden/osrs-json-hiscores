@@ -5,7 +5,7 @@
  * through `lib/` so the script sees exactly what ships.
  *
  *   node scripts/regen-content.ts           write
- *   node scripts/regen-content.ts --check   report drift, write nothing, exit 1 if stale
+ *   node scripts/regen-content.ts --check   report what differs, write nothing, exit 1 if stale
  *
  * ponytail: the fixed activity block (points, Bounty Hunter, clue scrolls, minigames)
  * has no key<->display rule either, but its twenty names are a closed set, so a
