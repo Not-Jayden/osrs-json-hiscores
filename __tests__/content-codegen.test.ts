@@ -10,7 +10,7 @@ import {
   renderBossesTable,
   validate
 } from '../scripts/regen-content.mjs';
-import { prBody } from '../scripts/codegen-content-pr.mjs';
+import { issueBody, prBody } from '../scripts/codegen-content-pr.mjs';
 import {
   BOSSES,
   FORMATTED_BOSS_NAMES,
@@ -107,6 +107,15 @@ test('the PR body carries the lines to paste', () => {
   expect(body).toContain("export const FORMATTED_PLAGUE_RIFT = 'Plague Rift';");
   expect(body).toContain('entry 4 of `ACTIVITIES`');
   expect(prBody('feat: add Zulrah', [])).not.toContain('Hand-written');
+
+  // The issue is the artifact when a hand-written entry is the only finding.
+  const issue = issueBody([
+    { name: 'Plague Rift', key: 'plagueRift', position: 3 }
+  ]);
+  expect(issue).toContain('nothing to open a PR for');
+  expect(issue).toContain(
+    "export const FORMATTED_PLAGUE_RIFT = 'Plague Rift';"
+  );
 });
 
 test('regeneration refuses content it cannot reproduce', () => {
