@@ -58,7 +58,8 @@ export async function codegen({ dry = false } = {}) {
   const title = addedNames.length
     ? `feat: add ${addedNames.join(', ')}`
     : 'chore: regenerate hiscores content';
-  const branch = `content/add-${addedNames.map(keyOf).join('-').slice(0, 60)}`;
+  const addedKeys = addedNames.map(keyOf).join('-').slice(0, 60);
+  const branch = `content/add-${addedKeys || 'regen'}`;
 
   if (dry) {
     console.log(`\nbranch: ${branch}\ntitle:  ${title}\n`);
