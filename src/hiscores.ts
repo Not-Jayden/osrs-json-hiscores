@@ -142,12 +142,11 @@ export async function getOfficialStats(
  */
 export async function getRSNFormat(
   rsn: string,
-  config?: RequestInit,
-  mode: Gamemode = 'main'
+  config?: RequestInit
 ): Promise<string> {
   validateRSN(rsn);
 
-  const url = getPlayerTableURL(mode, rsn);
+  const url = getPlayerTableURL('main', rsn);
   try {
     const response = await httpGet(url, config);
     const root = parse(await response.text());

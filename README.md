@@ -53,6 +53,10 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
   `RequestInit` rather than an `AxiosRequestConfig`.
 - A non-2xx response throws `HttpError`, which carries `.status`.
 - A response body that isn't valid JSON throws `HiScoresError`.
+- `getRSNFormat` throws `PlayerNotFoundError` for a missing player, instead of
+  always `HiScoresError`.
+- `Player` only carries the four standard gamemode keys (`main`, `ironman`,
+  `hardcore`, `ultimate`), not every gamemode.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
 
