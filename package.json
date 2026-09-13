@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "pnpm build --watch",
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint --fix \"src/**/*.ts\"",
+    "format": "prettier --write \"{src,__tests__}/**/*.ts\"",
+    "lint": "eslint --fix \"{src,__tests__}/**/*.ts\"",
     "test": "vitest run",
     "prepublish": "pnpm run build",
     "release": "np"
