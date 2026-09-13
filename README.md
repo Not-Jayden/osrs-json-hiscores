@@ -55,9 +55,6 @@ If you set `"skipLibCheck": false`, add `"DOM"` to `lib` in `tsconfig.json` (or 
 - A response body that isn't valid JSON throws `HiScoresError`.
 - `httpGet` no longer takes a generic and returns the raw `Response` instead of an axios `AxiosResponse`,
   so `response.data` becomes `await response.json()`.
-- These are no longer exported, because only the package uses them: `numberFromElement`, `rsnFromElement`,
-  `WHITESPACE_REGEX`, `WHITESPACE_REGEX_STRING`, `INVALID_FORMAT_ERROR`, `PLAYER_NOT_FOUND_ERROR`,
-  `HISCORES_ERROR`.
 
 ## How to use
 
